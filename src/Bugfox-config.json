@@ -1,0 +1,16 @@
+{
+    "sourceFolder": "/home/icefox99/project",
+    "generateFolder": "/home/icefox99/Bugfox",
+    "baseIgnoreFolder": [
+        "ignoreFolderPath1",
+        "ignoreFolderPath2"
+    ],
+    "newIgnoreFolder": [
+        "ignoreFolderPath1",
+        "ignoreFolderPath2"
+    ],
+    "baseCommitID": "7abbad3e4df12cd5294110bb5db11b7d5bc758a6",
+    "newCommitID": "dc99775d1135337197e1e3c551d5066ca05e5eab",
+    "baseCommand": "node test.js",
+    "newCommand": "node test.js"
+}
