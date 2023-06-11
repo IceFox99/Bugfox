@@ -6,14 +6,22 @@ const { Comparator } = require('./lib/Comparator');
 
 checkConfig(config);
 
-// Source code translation phase
 const translator = new Translator(config);
-translator.transProject(); // translate the source code 
+const launcher = new Launcher(config);
 
-// Launch project
-//const launcher = new Launcher(config); 
-//const result = launcher.launch(); // run the updated source code and trace the result
+const launchPromise = (async (translator, launcher) => {
+    await translator.transProject();
+    return await launcher.launch();
+})(translator, launcher);
+// temporary code snippet (to be deleted)
+//const launchPromise = (async (launcher) => {
+//    return await launcher.launch();
+//})(launcher);
 
-// Compare two commits
-//const comparator = new Comparator(result);
-//const reason = comparator.compare(); // get the regression reason
+launchPromise.then((result) => {
+    // Compare two commits
+    const comparator = new Comparator(result);
+    const reason = comparator.compare(); // get the regression reason
+}).catch((error) => {
+    console.error(error);
+});

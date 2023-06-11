@@ -34,18 +34,22 @@ class Translator {
         await fsp.mkdir(this.newTracePath, { recursive: true });
         await fsp.mkdir(this.traceDiffPath, { recursive: true });
 
-        await fse.copy(this.config.sourceFolder, this.baseProjectPath);
-        await fse.copy(this.config.sourceFolder, this.newProjectPath);
+        await fse.copySync(this.config.sourceFolder, this.baseProjectPath);
+        await fse.copySync(this.config.sourceFolder, this.newProjectPath);
+
+        const currentDir = process.cwd();
 
         process.chdir(this.baseProjectPath);
-        execSync("git switch -d " + this.config.baseCommitID);
+        await execSync("git switch -d " + this.config.baseCommitID);
         process.chdir(this.newProjectPath);
-        execSync("git switch -d " + this.config.newCommitID);
-        console.log("----------Bugfox: end setting up project----------");
+        await execSync("git switch -d " + this.config.newCommitID);
+        process.chdir(currentDir);
+        console.log("----------Bugfox: end setting up project----------\n");
     }
 
-    transProject() {
-        this.setUpProject();
+    async transProject() {
+        await this.setUpProject();
+
         // @TBD
     }
 }

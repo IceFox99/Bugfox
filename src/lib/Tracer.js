@@ -3,27 +3,16 @@
 const { FuncStack } = require('./FuncStack');
 const { toJSON } = require('./util');
 const fs = require('fs');
+const path = require('path');
 
 class Tracer {
-    constructor(config) {
+    constructor(config, isBase) {
         this.config = config;
         this.baseFuncStack = new FuncStack("ENTRY_POINT"); 
         this.currentPath = ""; // relative path to the git root folder
         this.currentFuncStack = this.baseFuncStack; // type: FuncStack
+        this.isBase = isBase;
     }
-
-    //static async setUpProject(config) {
-    //    await fsp.rm(config.generateFolder, { recursive: true, force: true });
-    //    await fsp.mkdir(config.generateFolder, { recursive: true });
-    //    // @TBD
-    //}
-
-    //run() {
-    //    // @TBD
-    //    //Tracer.genFolder(this.config);
-
-    //    return [ this.baseFuncStack, this.newFuncStack ];
-    //}
 
     getFuncStack(index) {
         let funcStack = this.baseFuncStack;
@@ -50,20 +39,20 @@ class Tracer {
         if (this.currentFuncStack.index.length <= 0)
             throw new Error("Reach highest call stack, can't move top.");
 
-        //let topIndex = this.currentFuncStack.index.slice(0, this.currentFuncStack.index.length - 1);
         this.currentFuncStack = this.getFuncStack(this.currentFuncStack.index.slice(0, this.currentFuncStack.index.length - 1)); 
     }
 
     writeFuncStacks() {
-        // @TBD
         const callGraph = JSON.stringify(global.BugfoxTracer.baseFuncStack, null, 2);
-        fs.writeFileSync('/home/icefox99/Bugfox/src/test/test.json', callGraph);
+        const projectName = path.basename(this.config.sourceFolder) + "_" + ((this.isBase) ? "base" : "new");
+        const fsPath = path.join(this.config.generateFolder, "trace", projectName, projectName + ".json");
+        fs.writeFileSync(fsPath, callGraph);
     }
 }
 module.exports.Tracer = Tracer;
 
 if (global.BugfoxTracer == undefined) {
-    global.BugfoxTracer = new Tracer(JSON.parse(process.env.BugfoxConfig));
+    global.BugfoxTracer = new Tracer(JSON.parse(process.env.BugfoxConfig), process.env.isBugfoxBase === 'true');
     process.on('exit', () => {
         global.BugfoxTracer.writeFuncStacks();
     });

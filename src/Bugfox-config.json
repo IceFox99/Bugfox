@@ -11,6 +11,6 @@
     ],
     "baseCommitID": "2a68b7efa5e7e46edd5837ea94b53a3a490dedfd",
     "newCommitID": "b37a88bbee97f4851a9fc57b0fee4400074fb52c",
-    "baseCommand": "echo baseCommand",
-    "newCommand": "echo newCommand"
+    "baseCommand": "echo baseCommand -o 1",
+    "newCommand": "echo newCommand -o 2"
 }
