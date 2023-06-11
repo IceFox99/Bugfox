@@ -9,9 +9,9 @@ const getFuncEntries = (value) => {
     const keys = Object.keys(value);
     const entries = {};
     keys.forEach((key) => {
-        if (Object.getOwnPropertyDescriptor(value, key)?.get === undefined) {
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (!descriptor || descriptor.get === undefined)
             entries[key] = value[key];
-        }
     });
     return entries;
 };

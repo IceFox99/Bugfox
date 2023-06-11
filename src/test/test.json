@@ -1,0 +1,597 @@
+{
+  "funcName": "ENTRY_POINT",
+  "index": [],
+  "callee": [
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        0
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[0,0]",
+      "afterThis": null,
+      "afterArgs": "[0,0]",
+      "returnVal": "0",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3d5812abc84c11768aa73a732c85d75dbed439188f5bb3239e9b762ea31d9862"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        1
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[1,1]",
+      "afterThis": null,
+      "afterArgs": "[1,1]",
+      "returnVal": "2",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:e61b9f584dbe27741cef6e9ee440831d7d94470c0871b0871541f0308916efea"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        2
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[2,2]",
+      "afterThis": null,
+      "afterArgs": "[2,2]",
+      "returnVal": "4",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        3
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[3,3]",
+      "afterThis": null,
+      "afterArgs": "[3,3]",
+      "returnVal": "6",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:96a1b00defb1967c7cf00050b628583790af1e6c99f03d56b560be04e26d36ec"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        4
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[4,4]",
+      "afterThis": null,
+      "afterArgs": "[4,4]",
+      "returnVal": "8",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3ec779786e88fbc09e425f7d36e674cdb03debc9974473055ba3b521a4349366"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        5
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[5,5]",
+      "afterThis": null,
+      "afterArgs": "[5,5]",
+      "returnVal": "10",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:5685f78dafe303b6a12089d8fb7edbfc69c58556bfa7fba0fb49676361b8b0c9"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        6
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[6,6]",
+      "afterThis": null,
+      "afterArgs": "[6,6]",
+      "returnVal": "12",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:b9177d892ba92a036e6a86fc9979af82d5778b6a17ea77eebf5e16de55d73136"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        7
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[7,7]",
+      "afterThis": null,
+      "afterArgs": "[7,7]",
+      "returnVal": "14",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:bdb94c722349d3200644baef90a49ec12fa44af2d6bf5f2acffdd09b68e62011"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        8
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[8,8]",
+      "afterThis": null,
+      "afterArgs": "[8,8]",
+      "returnVal": "16",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:97cb195fe3fba0f09d00f74fec064beba6d0008a7bdbbf66a082a69389d7da8d"
+    },
+    {
+      "funcName": "src/add.js#add",
+      "index": [
+        9
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [],
+      "beforeThis": null,
+      "beforeArgs": "[9,9]",
+      "afterThis": null,
+      "afterArgs": "[9,9]",
+      "returnVal": "18",
+      "id": "src/add.js#add:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:ee2b9476ed9d338ff8caa7d80651445ca48d54ed8c62cd8db6e5657644697f1f"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        10
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            10,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3d5812abc84c11768aa73a732c85d75dbed439188f5bb3239e9b762ea31d9862",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[0,0]",
+          "afterThis": null,
+          "afterArgs": "[0,0]",
+          "returnVal": "0",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3d5812abc84c11768aa73a732c85d75dbed439188f5bb3239e9b762ea31d9862"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            10,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3d5812abc84c11768aa73a732c85d75dbed439188f5bb3239e9b762ea31d9862",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[0,0]",
+          "afterThis": null,
+          "afterArgs": "[0,0]",
+          "returnVal": "0",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3d5812abc84c11768aa73a732c85d75dbed439188f5bb3239e9b762ea31d9862"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[0,0]",
+      "afterThis": null,
+      "afterArgs": "[0,0]",
+      "returnVal": "0",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3d5812abc84c11768aa73a732c85d75dbed439188f5bb3239e9b762ea31d9862"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        11
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            11,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:e61b9f584dbe27741cef6e9ee440831d7d94470c0871b0871541f0308916efea",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[1,1]",
+          "afterThis": null,
+          "afterArgs": "[1,1]",
+          "returnVal": "2",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:e61b9f584dbe27741cef6e9ee440831d7d94470c0871b0871541f0308916efea"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            11,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:e61b9f584dbe27741cef6e9ee440831d7d94470c0871b0871541f0308916efea",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[1,1]",
+          "afterThis": null,
+          "afterArgs": "[1,1]",
+          "returnVal": "2",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:e61b9f584dbe27741cef6e9ee440831d7d94470c0871b0871541f0308916efea"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[1,1]",
+      "afterThis": null,
+      "afterArgs": "[1,1]",
+      "returnVal": "4",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:e61b9f584dbe27741cef6e9ee440831d7d94470c0871b0871541f0308916efea"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        12
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            12,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[2,2]",
+          "afterThis": null,
+          "afterArgs": "[2,2]",
+          "returnVal": "4",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            12,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[2,2]",
+          "afterThis": null,
+          "afterArgs": "[2,2]",
+          "returnVal": "4",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[2,2]",
+      "afterThis": null,
+      "afterArgs": "[2,2]",
+      "returnVal": "8",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:1ad6041faf516d0043ca4b91348ab8c8a713496b5b5ce302e0e907e4f7bcbc24"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        13
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            13,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:96a1b00defb1967c7cf00050b628583790af1e6c99f03d56b560be04e26d36ec",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[3,3]",
+          "afterThis": null,
+          "afterArgs": "[3,3]",
+          "returnVal": "6",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:96a1b00defb1967c7cf00050b628583790af1e6c99f03d56b560be04e26d36ec"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            13,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:96a1b00defb1967c7cf00050b628583790af1e6c99f03d56b560be04e26d36ec",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[3,3]",
+          "afterThis": null,
+          "afterArgs": "[3,3]",
+          "returnVal": "6",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:96a1b00defb1967c7cf00050b628583790af1e6c99f03d56b560be04e26d36ec"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[3,3]",
+      "afterThis": null,
+      "afterArgs": "[3,3]",
+      "returnVal": "12",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:96a1b00defb1967c7cf00050b628583790af1e6c99f03d56b560be04e26d36ec"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        14
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            14,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3ec779786e88fbc09e425f7d36e674cdb03debc9974473055ba3b521a4349366",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[4,4]",
+          "afterThis": null,
+          "afterArgs": "[4,4]",
+          "returnVal": "8",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3ec779786e88fbc09e425f7d36e674cdb03debc9974473055ba3b521a4349366"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            14,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3ec779786e88fbc09e425f7d36e674cdb03debc9974473055ba3b521a4349366",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[4,4]",
+          "afterThis": null,
+          "afterArgs": "[4,4]",
+          "returnVal": "8",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3ec779786e88fbc09e425f7d36e674cdb03debc9974473055ba3b521a4349366"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[4,4]",
+      "afterThis": null,
+      "afterArgs": "[4,4]",
+      "returnVal": "16",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:3ec779786e88fbc09e425f7d36e674cdb03debc9974473055ba3b521a4349366"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        15
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            15,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:5685f78dafe303b6a12089d8fb7edbfc69c58556bfa7fba0fb49676361b8b0c9",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[5,5]",
+          "afterThis": null,
+          "afterArgs": "[5,5]",
+          "returnVal": "10",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:5685f78dafe303b6a12089d8fb7edbfc69c58556bfa7fba0fb49676361b8b0c9"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            15,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:5685f78dafe303b6a12089d8fb7edbfc69c58556bfa7fba0fb49676361b8b0c9",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[5,5]",
+          "afterThis": null,
+          "afterArgs": "[5,5]",
+          "returnVal": "10",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:5685f78dafe303b6a12089d8fb7edbfc69c58556bfa7fba0fb49676361b8b0c9"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[5,5]",
+      "afterThis": null,
+      "afterArgs": "[5,5]",
+      "returnVal": "20",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:5685f78dafe303b6a12089d8fb7edbfc69c58556bfa7fba0fb49676361b8b0c9"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        16
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            16,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:b9177d892ba92a036e6a86fc9979af82d5778b6a17ea77eebf5e16de55d73136",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[6,6]",
+          "afterThis": null,
+          "afterArgs": "[6,6]",
+          "returnVal": "12",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:b9177d892ba92a036e6a86fc9979af82d5778b6a17ea77eebf5e16de55d73136"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            16,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:b9177d892ba92a036e6a86fc9979af82d5778b6a17ea77eebf5e16de55d73136",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[6,6]",
+          "afterThis": null,
+          "afterArgs": "[6,6]",
+          "returnVal": "12",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:b9177d892ba92a036e6a86fc9979af82d5778b6a17ea77eebf5e16de55d73136"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[6,6]",
+      "afterThis": null,
+      "afterArgs": "[6,6]",
+      "returnVal": "24",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:b9177d892ba92a036e6a86fc9979af82d5778b6a17ea77eebf5e16de55d73136"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        17
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            17,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:bdb94c722349d3200644baef90a49ec12fa44af2d6bf5f2acffdd09b68e62011",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[7,7]",
+          "afterThis": null,
+          "afterArgs": "[7,7]",
+          "returnVal": "14",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:bdb94c722349d3200644baef90a49ec12fa44af2d6bf5f2acffdd09b68e62011"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            17,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:bdb94c722349d3200644baef90a49ec12fa44af2d6bf5f2acffdd09b68e62011",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[7,7]",
+          "afterThis": null,
+          "afterArgs": "[7,7]",
+          "returnVal": "14",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:bdb94c722349d3200644baef90a49ec12fa44af2d6bf5f2acffdd09b68e62011"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[7,7]",
+      "afterThis": null,
+      "afterArgs": "[7,7]",
+      "returnVal": "28",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:bdb94c722349d3200644baef90a49ec12fa44af2d6bf5f2acffdd09b68e62011"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        18
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            18,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:97cb195fe3fba0f09d00f74fec064beba6d0008a7bdbbf66a082a69389d7da8d",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[8,8]",
+          "afterThis": null,
+          "afterArgs": "[8,8]",
+          "returnVal": "16",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:97cb195fe3fba0f09d00f74fec064beba6d0008a7bdbbf66a082a69389d7da8d"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            18,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:97cb195fe3fba0f09d00f74fec064beba6d0008a7bdbbf66a082a69389d7da8d",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[8,8]",
+          "afterThis": null,
+          "afterArgs": "[8,8]",
+          "returnVal": "16",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:97cb195fe3fba0f09d00f74fec064beba6d0008a7bdbbf66a082a69389d7da8d"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[8,8]",
+      "afterThis": null,
+      "afterArgs": "[8,8]",
+      "returnVal": "32",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:97cb195fe3fba0f09d00f74fec064beba6d0008a7bdbbf66a082a69389d7da8d"
+    },
+    {
+      "funcName": "src/add.js#addAndDouble",
+      "index": [
+        19
+      ],
+      "caller": "ENTRY_POINT",
+      "callee": [
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            19,
+            0
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:ee2b9476ed9d338ff8caa7d80651445ca48d54ed8c62cd8db6e5657644697f1f",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[9,9]",
+          "afterThis": null,
+          "afterArgs": "[9,9]",
+          "returnVal": "18",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:ee2b9476ed9d338ff8caa7d80651445ca48d54ed8c62cd8db6e5657644697f1f"
+        },
+        {
+          "funcName": "src/add.js#add",
+          "index": [
+            19,
+            1
+          ],
+          "caller": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:ee2b9476ed9d338ff8caa7d80651445ca48d54ed8c62cd8db6e5657644697f1f",
+          "callee": [],
+          "beforeThis": null,
+          "beforeArgs": "[9,9]",
+          "afterThis": null,
+          "afterArgs": "[9,9]",
+          "returnVal": "18",
+          "id": "src/add.js#add:src/add.js#addAndDouble:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:ee2b9476ed9d338ff8caa7d80651445ca48d54ed8c62cd8db6e5657644697f1f"
+        }
+      ],
+      "beforeThis": null,
+      "beforeArgs": "[9,9]",
+      "afterThis": null,
+      "afterArgs": "[9,9]",
+      "returnVal": "36",
+      "id": "src/add.js#addAndDouble:ENTRY_POINT:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b:ee2b9476ed9d338ff8caa7d80651445ca48d54ed8c62cd8db6e5657644697f1f"
+    }
+  ],
+  "id": "ENTRY_POINT"
+}

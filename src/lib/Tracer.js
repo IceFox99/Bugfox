@@ -1,11 +1,11 @@
 "use strict";
 
-const { checkConfig } = require('./util');
 const { FuncStack } = require('./FuncStack');
+const { toJSON } = require('./util');
+const fs = require('fs');
 
 class Tracer {
     constructor(config) {
-        checkConfig(config);
         this.config = config;
         this.baseFuncStack = new FuncStack("ENTRY_POINT"); 
         this.currentPath = ""; // relative path to the git root folder
@@ -28,22 +28,18 @@ class Tracer {
     getFuncStack(index) {
         let funcStack = this.baseFuncStack;
         for (let i = 0; i < index.length; i++) {
-            funcStack = funcStack.callee[i];
+            funcStack = funcStack.callee[index[i]];
         }
         return funcStack;
+    }
+
+    static buildFuncStack(funcName) {
+        return new FuncStack(funcName);
     }
 
     push(funcStack) {
         if (this.currentFuncStack == null)
             throw new Error("Tracer uninitialized!");
-
-        // For safety, might assigned before
-        //funcStack.caller = this.currentFuncStack.id;
-
-        // update index
-        //let newIndex = this.currentFuncStack.index.slice();
-        //newIndex.push(this.currentFuncStack.callee.length);
-        //funcStack.index = newIndex;
 
         this.currentFuncStack.pushCallee(funcStack); // pushCallee() will update id and index immediately
     }
@@ -54,15 +50,21 @@ class Tracer {
         if (this.currentFuncStack.index.length <= 0)
             throw new Error("Reach highest call stack, can't move top.");
 
-        let topIndex = this.currentFuncStack.index.slice(0, this.currentFuncStack.index.length - 1);
-        this.currentFuncStack = this.getFuncStack(topIndex); 
+        //let topIndex = this.currentFuncStack.index.slice(0, this.currentFuncStack.index.length - 1);
+        this.currentFuncStack = this.getFuncStack(this.currentFuncStack.index.slice(0, this.currentFuncStack.index.length - 1)); 
+    }
+
+    writeFuncStacks() {
+        // @TBD
+        const callGraph = JSON.stringify(global.BugfoxTracer.baseFuncStack, null, 2);
+        fs.writeFileSync('/home/icefox99/Bugfox/src/test/test.json', callGraph);
     }
 }
 module.exports.Tracer = Tracer;
 
-// Temporary code snippet, wont appear in real code
-const config = require('../Bugfox-config.json');
-process.env.BugfoxConfig = JSON.stringify(config);
-
-if (global.BugfoxTracer == undefined)
+if (global.BugfoxTracer == undefined) {
     global.BugfoxTracer = new Tracer(JSON.parse(process.env.BugfoxConfig));
+    process.on('exit', () => {
+        global.BugfoxTracer.writeFuncStacks();
+    });
+}

@@ -1,6 +1,6 @@
 {
-    "sourceFolder": "/home/icefox99/project",
-    "generateFolder": "/home/icefox99/Bugfox",
+    "sourceFolder": "/home/icefox99/Trashcan",
+    "generateFolder": "/home/icefox99/test/BugfoxResult",
     "baseIgnoreFolder": [
         "ignoreFolderPath1",
         "ignoreFolderPath2"
@@ -9,8 +9,8 @@
         "ignoreFolderPath1",
         "ignoreFolderPath2"
     ],
-    "baseCommitID": "7abbad3e4df12cd5294110bb5db11b7d5bc758a6",
-    "newCommitID": "dc99775d1135337197e1e3c551d5066ca05e5eab",
-    "baseCommand": "node test.js",
-    "newCommand": "node test.js"
+    "baseCommitID": "2a68b7efa5e7e46edd5837ea94b53a3a490dedfd",
+    "newCommitID": "b37a88bbee97f4851a9fc57b0fee4400074fb52c",
+    "baseCommand": "echo baseCommand",
+    "newCommand": "echo newCommand"
 }

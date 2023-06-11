@@ -1,9 +1,9 @@
 const { Tracer } = require('../lib/Tracer');
 const { FuncStack } = require('../lib/FuncStack');
 
-const { add } = require('./add');
-console.log(add(1,2));
-console.log(add(2,3));
-console.log(add(100,200));
+const { add, addAndDouble } = require('./add');
+for (let i = 0; i < 10; ++i)
+    console.log(add(i,i));
 
-console.log(global.BugfoxTracer.currentFuncStack.callee);
+for (let i = 0; i < 10; ++i)
+    console.log(addAndDouble(i,i));

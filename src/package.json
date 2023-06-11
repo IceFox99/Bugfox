@@ -3,6 +3,7 @@
     "acorn": "^8.8.2",
     "ast-types": "^0.14.2",
     "astring": "^1.8.6",
-    "estree-walker": "^3.0.3"
+    "estree-walker": "^2.0.2",
+    "fs-extra": "^11.1.1"
   }
 }
