@@ -9,19 +9,12 @@ checkConfig(config);
 const translator = new Translator(config);
 const launcher = new Launcher(config);
 
-const launchPromise = (async (translator, launcher) => {
+//(async (translator, launcher) => {
+//    await translator.transProject();
+//    const result = await launcher.launch();
+//    const comparator = new Comparator(result);
+//    await comparator.compare();
+//})(translator, launcher);
+(async (translator) => {
     await translator.transProject();
-    return await launcher.launch();
-})(translator, launcher);
-// temporary code snippet (to be deleted)
-//const launchPromise = (async (launcher) => {
-//    return await launcher.launch();
-//})(launcher);
-
-launchPromise.then((result) => {
-    // Compare two commits
-    const comparator = new Comparator(result);
-    const reason = comparator.compare(); // get the regression reason
-}).catch((error) => {
-    console.error(error);
-});
+})(translator);

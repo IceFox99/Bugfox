@@ -1,16 +1,14 @@
 {
-    "sourceFolder": "/home/icefox99/Trashcan",
+    "sourceFolder": "/home/icefox99/Bugfox-test",
     "generateFolder": "/home/icefox99/test/BugfoxResult",
     "baseIgnoreFolder": [
-        "ignoreFolderPath1",
-        "ignoreFolderPath2"
+        "src/vendor"
     ],
     "newIgnoreFolder": [
-        "ignoreFolderPath1",
-        "ignoreFolderPath2"
+        "src/vendor"
     ],
-    "baseCommitID": "2a68b7efa5e7e46edd5837ea94b53a3a490dedfd",
-    "newCommitID": "b37a88bbee97f4851a9fc57b0fee4400074fb52c",
-    "baseCommand": "echo baseCommand -o 1",
-    "newCommand": "echo newCommand -o 2"
+    "baseCommitID": "ba60b2b28023e197d90001f4093f8c8f3cf7eb70",
+    "newCommitID": "df8aa05f1e44abb007d30e78b8a4f462d3b40533",
+    "baseCommand": "echo baseVersion",
+    "newCommand": "echo newVersion"
 }

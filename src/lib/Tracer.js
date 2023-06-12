@@ -49,7 +49,7 @@ class Tracer {
         fs.writeFileSync(fsPath, callGraph);
     }
 }
-module.exports.Tracer = Tracer;
+module.exports._Tracer_ = Tracer;
 
 if (global.BugfoxTracer == undefined) {
     global.BugfoxTracer = new Tracer(JSON.parse(process.env.BugfoxConfig), process.env.isBugfoxBase === 'true');
