@@ -23,7 +23,7 @@ const toJSON = (data) => {
             if (entries.length <= 0)
                 return defaultString;
             else
-                return `{"#Function":"${value.toString()}","#Attributes":${prune(entries, options)}}`;
+                return `{"#Function":"${value.toString()}","#Attributes":${toJSON(entries)}}`;
         }
         else
             return JSON.stringify(value);
