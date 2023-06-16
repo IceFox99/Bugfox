@@ -4,9 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
 const fse = require('fs-extra');
-const { hash } = require('./util');
+const { addFuncPrefix, hash } = require('./util');
 
-const { builders } = require('ast-types');
 const acorn = require('acorn');
 const { walk }= require('estree-walker');
 const { generate } = require('astring');
@@ -46,6 +45,7 @@ class Translator {
 
         // temporary variables
         this.currentFuncPath = []; // [ Func@funcName.., Class@className.. ]
+		this.isSkipped = false;
     }
 
     async setUpProject() {
@@ -59,43 +59,27 @@ class Translator {
         await fsp.mkdir(this.newTracePath, { recursive: true });
         await fsp.mkdir(this.traceDiffPath, { recursive: true });
 
-        await fse.copySync(this.config.sourceFolder, this.baseProjectPath);
-        await fse.copySync(this.config.sourceFolder, this.newProjectPath);
+        await fse.copy(this.config.sourceFolder, this.baseProjectPath);
+        await fse.copy(this.config.sourceFolder, this.newProjectPath);
 
         const currentDir = process.cwd();
 
         process.chdir(this.baseProjectPath);
-        await execSync("git switch -d " + this.config.baseCommitID);
+        execSync("git switch -d " + this.config.baseCommitID);
         process.chdir(this.newProjectPath);
-        await execSync("git switch -d " + this.config.newCommitID);
+        execSync("git switch -d " + this.config.newCommitID);
         process.chdir(currentDir);
         console.log("----------Bugfox: end setting up project----------\n");
     }
 
-    // @TBD
-    //getCopyFuncAST(funcAST) {
-    //    let copyFuncAST = {};
-    //    if (funcAST.type === "VariableDeclaration") { // e.g. const a = (x) => { return x + x; };
-
-    //    }
-    //    else if (funcAST.type === "FunctionDeclaration") { // normal funtion
-    //        
-    //    }
-    //    else if (funcAST.type === "MethodDefinition") { // method functions
-
-    //    }
-    //    else if (funcAST.type === "PropertyDefinition") { // method arrow functions
-
-    //    }
-    //    else
-    //        throw new Error("Unknown function AST type!");
-
-    //    return copyFuncAST;
-    //}
-    
+    // @str: has to be an valid statement
     getSingleAST(str) {
         return acorn.parse(str, { ecmaVersion: "latest" }).body[0];
     }
+
+	getRestElem() {
+		return acorn.parse("(...args)=>{}", { ecmaVersion: "latest" }).body[0].expression.params[0];
+	}
 
     isIgnored(filePath, isBase) {
         if (isBase) {
@@ -118,208 +102,276 @@ class Translator {
         return (node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression");
     }
 
-    // @NOT_SURE
-    enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex) {
-        let tempLeftNode = exprNode.left;
-        let tempRightNode = exprNode.right;
-        for (const i of arrIndex) {
-            tempLeftNode = tempLeftNode.elements[i];
-            tempRightNode = tempRightNode.elements[i];
-        }
-        // tempLeftNode and tempRightNode are ArrayPattern now
-        for (let i = 0; i < tempLeftNode.elements.length; ++i) {
-            if (tempRightNode.elements === undefined || tempRightNode.elements.length < i + 1)
-                return; // weird code like [a,[b,c]] = [func1, funcArray];
+    // build the block statement after inserting the original function
+    // @fullFuncName: src/add.js#add
+    // @generatedFuncName: Bugfox_Original_add
+    buildBlockStat(blockStat, fullFuncName, generatedFuncName) {
+        // add the buildFuncStack statement
+        blockStat.body.push(this.getSingleAST("let funcStack = _Tracer_.buildFuncStack(\'" + fullFuncName + "\');"));
+        
+        // add the setBeforeStats
+        blockStat.body.push(this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.id, this, args);"));
 
-            if (this.isFuncExpr(tempRightNode.elements[i])) {
-                this.currentFuncPath.push("FuncVar@" + tempLeftNode.elements[i].name);
-                fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(tempRightNode.elements[i]));
-                this.currentFuncPath.pop();
-            }
-            else if (tempLeftNode.elements[i].type === "ArrayPattern") {
-                arrIndex.push(i);
-                this.enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
-                arrIndex.pop();
-            }
-        }
+        // add the push and move
+        blockStat.body.push(this.getSingleAST("global.BugfoxTracer.push(funcStack);"));
+        blockStat.body.push(this.getSingleAST("global.BugfoxTracer.move(funcStack);"));
+
+        // add the original function's call
+        blockStat.body.push(this.getSingleAST("const result = " + generatedFuncName + ".bind(this)(...args);"));
+
+        // add the setAfterStats
+        blockStat.body.push(this.getSingleAST("funcStack.setAfterStats(this, args, result);"));
+
+        // add the moveTop
+        blockStat.body.push(this.getSingleAST("global.BugfoxTracer.moveTop();"));
+
+        // add the return statement
+        blockStat.body.push(acorn.parse("function f(result) { return result; }", { ecmaVersion: "latest" }).body[0].body.body[0]);
     }
 
-    // @NOT_SURE
-    enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, declNode, arrIndex) {
-        let tempLeftNode = declNode.id;
-        let tempRightNode = declNode.init;
-        for (const i of arrIndex) {
-            tempLeftNode = tempLeftNode.elements[i];
-            tempRightNode = tempRightNode.elements[i];
-        }
-        // tempLeftNode and tempRightNode are ArrayPattern and ArrayExpression
-        for (let i = 0; i < tempLeftNode.elements.length; ++i) {
-            if (tempRightNode.elements === undefined || tempRightNode.elements.length < i + 1)
-                return; // weird code like [a,[b,c]] = [func1, funcArray];
+    // To be updated in future
+    //enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex) {
+    //    let tempLeftNode = exprNode.left;
+    //    let tempRightNode = exprNode.right;
+    //    for (const i of arrIndex) {
+    //        tempLeftNode = tempLeftNode.elements[i];
+    //        tempRightNode = tempRightNode.elements[i];
+    //    }
+    //    // tempLeftNode and tempRightNode are ArrayPattern now
+    //    for (let i = 0; i < tempLeftNode.elements.length; ++i) {
+    //        if (tempRightNode.elements === undefined || tempRightNode.elements.length < i + 1)
+    //            return; // weird code like [a,[b,c]] = [func1, funcArray];
 
-            if (this.isFuncExpr(tempRightNode.elements[i])) {
-                this.currentFuncPath.push("FuncVar@" + tempLeftNode.elements[i].name);
-                fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(tempRightNode.elements[i]));
-                this.currentFuncPath.pop();
-            }
-            else if (tempLeftNode.elements[i].type === "ArrayPattern") {
-                arrIndex.push(i);
-                this.enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
-                arrIndex.pop();
-            }
-        }
-    }
+    //        if (this.isFuncExpr(tempRightNode.elements[i])) {
+    //            this.currentFuncPath.push("FuncVar@" + tempLeftNode.elements[i].name);
+    //            fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(tempRightNode.elements[i]));
+    //            this.currentFuncPath.pop();
+    //        }
+    //        else if (tempLeftNode.elements[i].type === "ArrayPattern") {
+    //            arrIndex.push(i);
+    //            this.enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
+    //            arrIndex.pop();
+    //        }
+    //    }
+    //}
 
-    // @NOT_SURE
+    // To be updated in future
+    //enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, declNode, arrIndex) {
+    //    let tempLeftNode = declNode.id;
+    //    let tempRightNode = declNode.init;
+    //    for (const i of arrIndex) {
+    //        tempLeftNode = tempLeftNode.elements[i];
+    //        tempRightNode = tempRightNode.elements[i];
+    //    }
+    //    // tempLeftNode and tempRightNode are ArrayPattern and ArrayExpression
+    //    for (let i = 0; i < tempLeftNode.elements.length; ++i) {
+    //        if (tempRightNode.elements === undefined || tempRightNode.elements.length < i + 1)
+    //            return; // weird code like [a,[b,c]] = [func1, funcArray];
+
+    //        if (this.isFuncExpr(tempRightNode.elements[i])) {
+    //            this.currentFuncPath.push("FuncVar@" + tempLeftNode.elements[i].name);
+    //            fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(tempRightNode.elements[i]));
+    //            this.currentFuncPath.pop();
+    //        }
+    //        else if (tempLeftNode.elements[i].type === "ArrayPattern") {
+    //            arrIndex.push(i);
+    //            this.enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
+    //            arrIndex.pop();
+    //        }
+    //    }
+    //}
+
+    // @TBD
     enterTraverseAssignExpr(relativeFilePath, fileFuncHash, exprNode) {
         if (exprNode.left.type === "Identifier") {
             if (this.isFuncExpr(exprNode.right)) {
                 this.currentFuncPath.push("FuncVar@" + exprNode.left.name);
                 fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(exprNode.right));
-                this.currentFuncPath.pop();
             }
         }
         else if (exprNode.left.type === "ArrayPattern") {
-            for (let i = 0; i < exprNode.left.elements.length; ++i) {
-                if (exprNode.right.elements === undefined || exprNode.right.elements.length < i + 1)
-                    return;
+			this.isSkipped = true;
+			// To be updated in future
+            //for (let i = 0; i < exprNode.left.elements.length; ++i) {
+            //    if (exprNode.right.elements === undefined || exprNode.right.elements.length < i + 1)
+            //        return;
 
-                if (this.isFuncExpr(exprNode.right.elements[i])) {
-                    this.currentFuncPath.push("FuncVar@" + exprNode.left.elements[i].name);
-                    fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(exprNode.right.elements[i]));
-                    this.currentFuncPath.pop();
-                }
-                else if (exprNode.left.elements[i].type === "ArrayPattern") {
-                    let arrIndex = [i];
-                    this.enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
-                }
-            }
+            //    if (this.isFuncExpr(exprNode.right.elements[i])) {
+            //        this.currentFuncPath.push("FuncVar@" + exprNode.left.elements[i].name);
+            //        fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(exprNode.right.elements[i]));
+            //        this.currentFuncPath.pop();
+            //    }
+            //    else if (exprNode.left.elements[i].type === "ArrayPattern") {
+            //        let arrIndex = [i];
+            //        this.enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
+			//	}
+            //}
         }
     }
 
-    // @NOT_SURE
+    // @TBD
     enterTraverseVarDecl(relativeFilePath, fileFuncHash, declNode) {
-        for (const declarator of declNode.declarations) {
-            if (this.isFuncExpr(declarator.init)) {
-                this.currentFuncPath.push("FuncVar@" + declarator.id.name);
-                fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declarator));
-                this.currentFuncPath.pop();
-            }
-            else if (declarator.id.type === "ArrayPattern") {
-                for (let i = 0; i < declarator.id.elements.length; ++i) {
-                    if (declarator.init.elements === undefined || declarator.init.elements.length < i + 1)
-                        return;
+        if (this.isFuncExpr(declNode.init)) {
+            this.currentFuncPath.push("FuncVar@" + declNode.id.name);
+            fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declNode));
+        }
+        else if (declNode.id.type === "ArrayPattern") {
+			this.isSkipped = true;
+			// To be updated in future
+            //for (let i = 0; i < declNode.id.elements.length; ++i) {
+            //    if (declNode.init.elements === undefined || declNode.init.elements.length < i + 1)
+            //        return;
 
-                    if (this.isFuncExpr(declarator.init.elements[i])) {
-                        this.currentFuncPath.push("FuncVar@" + declarator.id.elements[i].name);
-                        fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declarator.init.elements[i]));
-                        this.currentFuncPath.pop();
-                    }
-                    else if (declarator.id.elements[i].type === "ArrayPattern") {
-                        let arrIndex = [i];
-                        this.enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, declarator, arrIndex);
-                    }
-                }
-            }
+            //    if (this.isFuncExpr(declNode.init.elements[i])) {
+            //        this.currentFuncPath.push("FuncVar@" + declNode.id.elements[i].name);
+            //        fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declNode.init.elements[i]));
+            //        this.currentFuncPath.pop();
+            //    }
+            //    else if (declNode.id.elements[i].type === "ArrayPattern") {
+            //        let arrIndex = [i];
+            //        this.enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, declNode, arrIndex);
+            //    }
+            //}
         }
     }
 
-    // @NOT_SURE
-    leaveTraverseExprArrPatt(relativeFilePath, exprNode, arrIndex) {
-        let tempLeftNode = exprNode.left;
-        let tempRightNode = exprNode.right;
-        for (const i of arrIndex) {
-            tempLeftNode = tempLeftNode.elements[i];
-            tempRightNode = tempRightNode.elements[i];
-        }
-        // tempLeftNode and tempRightNode are ArrayPattern now
-        for (let i = 0; i < tempLeftNode.elements.length; ++i) {
-            if (tempRightNode.elements === undefined || tempRightNode.elements.length < i + 1)
-                return; // weird code like [a,[b,c]] = [func1, funcArray];
+    // To be updated in future
+    //leaveTraverseExprArrPatt(relativeFilePath, exprNode, arrIndex) {
+    //    let tempLeftNode = exprNode.left;
+    //    let tempRightNode = exprNode.right;
+    //    for (const i of arrIndex) {
+    //        tempLeftNode = tempLeftNode.elements[i];
+    //        tempRightNode = tempRightNode.elements[i];
+    //    }
+    //    // tempLeftNode and tempRightNode are ArrayPattern now
+    //    for (let i = 0; i < tempLeftNode.elements.length; ++i) {
+    //        if (tempRightNode.elements === undefined || tempRightNode.elements.length < i + 1)
+    //            return; // weird code like [a,[b,c]] = [func1, funcArray];
 
-            if (this.isFuncExpr(tempRightNode.elements[i])) {
-                //this.currentFuncPath.pop();
-            }
-            else if (tempLeftNode.elements[i].type === "ArrayPattern") {
-                arrIndex.push(i);
-                this.leaveTraverseExprArrPatt(relativeFilePath, exprNode, arrIndex);
-                arrIndex.pop();
-            }
-        }
-    }
+    //        if (this.isFuncExpr(tempRightNode.elements[i])) {
+    //            //this.currentFuncPath.pop();
+    //        }
+    //        else if (tempLeftNode.elements[i].type === "ArrayPattern") {
+    //            arrIndex.push(i);
+    //            this.leaveTraverseExprArrPatt(relativeFilePath, exprNode, arrIndex);
+    //            arrIndex.pop();
+    //        }
+    //    }
+    //}
 
-    // @NOT_SURE
-    leaveTraverseDeclArrPatt(relativeFilePath, declNode, arrIndex) {
-        let tempLeftNode = declNode.id;
-        let tempRightNode = declNode.init;
-        for (const i of arrIndex) {
-            tempLeftNode = tempLeftNode.elements[i];
-            tempRightNode = tempRightNode.elements[i];
-        }
-        // tempLeftNode and tempRightNode are ArrayPattern and ArrayExpression
-        for (let i = 0; i < tempLeftNode.elements.length; ++i) {
-            if (tempRightNode.elements === undefined || tempRightNode.elements.length < i + 1)
-                return; // weird code like [a,[b,c]] = [func1, funcArray];
+    // To be updated in future
+    //leaveTraverseDeclArrPatt(relativeFilePath, declNode, arrIndex) {
+    //    let tempLeftNode = declNode.id;
+    //    let tempRightNode = declNode.init;
+    //    for (const i of arrIndex) {
+    //        tempLeftNode = tempLeftNode.elements[i];
+    //        tempRightNode = tempRightNode.elements[i];
+    //    }
+    //    // tempLeftNode and tempRightNode are ArrayPattern and ArrayExpression
+    //    for (let i = 0; i < tempLeftNode.elements.length; ++i) {
+    //        if (tempRightNode.elements === undefined || tempRightNode.elements.length < i + 1)
+    //            return; // weird code like [a,[b,c]] = [func1, funcArray];
 
-            if (this.isFuncExpr(tempRightNode.elements[i])) {
-                //this.currentFuncPath.pop();
-            }
-            else if (tempLeftNode.elements[i].type === "ArrayPattern") {
-                arrIndex.push(i);
-                this.leaveTraverseDeclArrPatt(relativeFilePath, exprNode, arrIndex);
-                arrIndex.pop();
-            }
-        }
-    }
+    //        if (this.isFuncExpr(tempRightNode.elements[i])) {
+    //            //this.currentFuncPath.pop();
+    //        }
+    //        else if (tempLeftNode.elements[i].type === "ArrayPattern") {
+    //            arrIndex.push(i);
+    //            this.leaveTraverseDeclArrPatt(relativeFilePath, exprNode, arrIndex);
+    //            arrIndex.pop();
+    //        }
+    //    }
+    //}
 
-    // @NOT_SURE
+    // @TBD
     leaveTraverseAssignExpr(relativeFilePath, exprNode) {
         if (exprNode.left.type === "Identifier") {
             if (this.isFuncExpr(exprNode.right)) {
-                //this.currentFuncPath.pop();
+				let innerDecl = this.getSingleAST("const a = 0;");
+				innerDecl.declarations[0].id.name = addFuncPrefix(exprNode.left.name);
+				innerDecl.declarations[0].init = exprNode.right;
+				if (exprNode.right.type === "ArrowFunctionExpression") {
+					exprNode.right = acorn.parse("(...args)=>{}", { ecmaVersion: "latest" }).body[0].expression;
+				}
+				else if (exprNode.right.type === "FunctionExpression") {
+					exprNode.right = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest" }).body[0].declarations[0].init;
+				}
+				exprNode.right.body.body.push(innerDecl);
+				this.buildBlockStat(exprNode.right.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
+                this.currentFuncPath.pop();
             }
         }
         else if (exprNode.left.type === "ArrayPattern") {
-            for (let i = 0; i < exprNode.left.elements.length; ++i) {
-                if (exprNode.right.elements === undefined || exprNode.right.elements.length < i + 1)
-                    return;
+			this.isSkipped = false;
+			// To be updated in future
+            //for (let i = 0; i < exprNode.left.elements.length; ++i) {
+			//	// TBD
+            //    if (exprNode.right.elements === undefined || exprNode.right.elements.length < i + 1)
+            //        return;
 
-                if (this.isFuncExpr(exprNode.right.elements[i])) {
-                    //this.currentFuncPath.pop();
-                }
-                else if (exprNode.left.elements[i].type === "ArrayPattern") {
-                    let arrIndex = [i];
-                    this.leaveTraverseExprArrPatt(relativeFilePath, exprNode, arrIndex);
-                }
-            }
+            //    if (this.isFuncExpr(exprNode.right.elements[i])) {
+            //        //this.currentFuncPath.pop();
+            //    }
+            //    else if (exprNode.left.elements[i].type === "ArrayPattern") {
+            //        let arrIndex = [i];
+            //        this.leaveTraverseExprArrPatt(relativeFilePath, exprNode, arrIndex);
+            //    }
+            //}
         }
     }
 
-    // @NOT_SURE
+    // @TBD
     leaveTraverseVarDecl(relativeFilePath, declNode) {
-        for (const declarator of declNode.declarations) {
-            if (this.isFuncExpr(declarator.init)) {
-                //this.currentFuncPath.pop();
-            }
-            else if (declarator.id.type === "ArrayPattern") {
-                for (let i = 0; i < declarator.id.elements.length; ++i) {
-                    if (declarator.init.elements === undefined || declarator.init.elements.length < i + 1)
-                        return;
+        if (this.isFuncExpr(declNode.init)) {
+			// translate this node
+			let innerDecl = this.getSingleAST("const a = 0;");
 
-                    if (this.isFuncExpr(declarator.init.elements[i])) {
-                        //this.currentFuncPath.pop();
-                    }
-                    else if (declarator.id.elements[i].type === "ArrayPattern") {
-                        let arrIndex = [i];
-                        this.leaveTraverseDeclArrPatt(relativeFilePath, declarator, arrIndex);
-                    }
-                }
-            }
+			// add prefix to the function name
+			innerDecl.declarations[0].id.name = addFuncPrefix(declNode.id.name);
+
+			// move the function expression tree
+			innerDecl.declarations[0].init = declNode.init;
+			if (declNode.init.type === "ArrowFunctionExpression") {
+				declNode.init = acorn.parse("(...args)=>{}", { ecmaVersion: "latest" }).body[0].expression;
+			}
+			else if (declNode.init.type === "FunctionExpression") {
+				declNode.init = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest" }).body[0].declarations[0].init;
+			}
+
+			// push the prefixed function
+			declNode.init.body.body.push(innerDecl);
+			this.buildBlockStat(declNode.init.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
+
+			// TESTING
+            this.currentFuncPath.pop();
+        }
+        else if (declNode.id.type === "ArrayPattern") {
+			this.isSkipped = false;
+			// To be updated in future
+            //for (let i = 0; i < declNode.id.elements.length; ++i) {
+            //    if (declNode.init.elements === undefined || declNode.init.elements.length < i + 1)
+            //        return;
+
+            //    if (this.isFuncExpr(declNode.init.elements[i])) {
+            //        this.currentFuncPath.push("FuncVar@" + declNode.id.elements[i].name);
+			//		
+			//		// change the node
+
+            //        this.currentFuncPath.pop();
+            //    }
+            //    else if (declNode.id.elements[i].type === "ArrayPattern") {
+            //        let arrIndex = [i];
+            //        this.leaveTraverseDeclArrPatt(relativeFilePath, declNode, arrIndex);
+            //    }
+            //}
         }
     }
 
     // store the function's hash values of that file
     traverseEnter(relativeFilePath, fileFuncHash, node, parent, prop, index) {
+		if (this.isSkipped)
+			return;
+
         if (node.type === "FunctionDeclaration") { // normal function declaration
             this.currentFuncPath.push("Func@" + node.id.name);
             fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
@@ -335,39 +387,75 @@ class Translator {
         else if (node.type === "ClassDeclaration") {
             this.currentFuncPath.push("Class@" + node.id.name);
         }
-        else if (node.type === "VariableDeclaration") {
+        else if (node.type === "VariableDeclarator") {
             this.enterTraverseVarDecl(relativeFilePath, fileFuncHash, node);
         }
-        else if (node.type === "ExpressionStatement") {
-            if (node.expression.type === "AssignmentExpression") {
-                this.enterTraverseAssignExpr(relativeFilePath, fileFuncHash, node.expression);
-            }
-        }
+		else if (node.type === "AssignmentExpression") {
+			this.enterTraverseAssignExpr(relativeFilePath, fileFuncHash, node);
+		}
     }
 
     // @TBD
     // insert the Tracer statement and pop the index of function hash
+    // Normally, 1) we change the input parameters to ...args, 2) add a inner function with a
+    // prefixed name, 3) add bunch of Tracer statements
     traverseLeave(relativeFilePath, node, parent, prop, index) {
         if (node.type === "FunctionDeclaration") { // normal function declaration
+			let innerFunc = this.getSingleAST("function f() {}");
+			
+			// move the params and block nodes
+			innerFunc.body = node.body;
+			innerFunc.id.name = addFuncPrefix(node.id.name);
+			node.body = this.getSingleAST("{}");
+			innerFunc.params = node.params;
+			node.params = [ this.getRestElem() ];
+			node.body.body.push(innerFunc);
+
+            this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerFunc.id.name);
+
+            // pop the current scope
             this.currentFuncPath.pop();
         }
         else if (node.type === "MethodDefinition") {
+			let innerFunc = this.getSingleAST("function f() {}");
+			
+			innerFunc.body = node.value.body;
+			innerFunc.id.name = addFuncPrefix(node.key.name);
+			node.value.body = this.getSingleAST("{}");
+			innerFunc.params = node.value.params;
+			node.value.params = [ this.getRestElem() ];
+			node.value.body.body.push(innerFunc);
+
+            this.buildBlockStat(node.value.body, this.getFullFuncName(relativeFilePath), innerFunc.id.name);
+
             this.currentFuncPath.pop();
         }
         else if (node.type === "PropertyDefinition" && this.isFuncExpr(node.value)) {
+			let innerDecl = this.getSingleAST("const a = 0;");
+			innerDecl.declarations[0].id.name = addFuncPrefix(node.key.name);
+			innerDecl.declarations[0].init = node.value;
+			if (node.value.type === "ArrowFunctionExpression") {
+				node.value = acorn.parse("(...args)=>{}", { ecmaVersion: "latest" }).body[0].expression;
+			}
+			else if (node.value.type === "FunctionExpression") {
+				node.value = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest" }).body[0].declarations[0].init;
+			}
+
+			node.value.body.body.push(innerDecl);
+			this.buildBlockStat(node.value.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
+
+            // pop the current scope
             this.currentFuncPath.pop();
         }
         else if (node.type === "ClassDeclaration") {
             this.currentFuncPath.pop();
         }
-        else if (node.type === "VariableDeclaration") {
+        else if (node.type === "VariableDeclarator") {
             this.leaveTraverseVarDecl(relativeFilePath, node);
         }
-        else if (node.type === "ExpressionStatement") {
-            if (node.expression.type === "AssignmentExpression") {
-                this.leaveTraverseAssignExpr(relativeFilePath, node.expression);
-            }
-        }
+		else if (node.type === "AssignmentExpression") {
+			this.leaveTraverseAssignExpr(relativeFilePath, node);
+		}
     }
 
     // add the require statment to import Tracer module at the top
@@ -432,6 +520,7 @@ class Translator {
     async transProject() {
         await this.setUpProject();
 
+        console.log("----------Bugfox: start translating project----------");
         // translate base project recursively
         await this.transDir(this.baseProjectPath, true);
 
@@ -440,6 +529,7 @@ class Translator {
 
         await fsp.writeFile(this.baseTraceFuncPath, JSON.stringify(this.baseFuncHash, null, 2));
         await fsp.writeFile(this.newTraceFuncPath, JSON.stringify(this.newFuncHash, null, 2));
+        console.log("----------Bugfox: end translating project----------\n");
     }
 }
 module.exports.Translator = Translator;

@@ -5,6 +5,12 @@ const prune = require("../vendor/JSON.prune/JSON.prune");
 const fs = require('fs');
 const path = require('path');
 
+const addFuncPrefix = (str) => {
+    return "Bugfox_Original_" + str; 
+};
+module.exports.addFuncPrefix = addFuncPrefix;
+
+
 const getFuncEntries = (value) => {
     const keys = Object.keys(value);
     const entries = {};

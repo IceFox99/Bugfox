@@ -1,6 +1,6 @@
 {
-    "sourceFolder": "/home/icefox99/Bugfox-test",
-    "generateFolder": "/home/icefox99/BugfoxResult",
+    "sourceFolder": "/Users/icefox99/Bugfox-test",
+    "generateFolder": "/Users/icefox99/BugfoxResult",
     "baseIgnoreFolder": [
         "src/vendor"
     ],
