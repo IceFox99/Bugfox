@@ -6,15 +6,14 @@ const { Comparator } = require('./lib/Comparator');
 
 checkConfig(config);
 
-const translator = new Translator(config);
-const launcher = new Launcher(config);
 
-//(async (translator, launcher) => {
-//    await translator.transProject();
-//    const result = await launcher.launch();
-//    const comparator = new Comparator(result);
-//    await comparator.compare();
-//})(translator, launcher);
-(async (translator) => {
+(async () => {
+	const translator = new Translator(config);
     await translator.transProject();
-})(translator);
+
+	const launcher = new Launcher(config);
+    const result = await launcher.launch();
+
+    const comparator = new Comparator(config, result);
+    await comparator.compare();
+})();

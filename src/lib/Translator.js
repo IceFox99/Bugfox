@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
 const fse = require('fs-extra');
-const { addFuncPrefix, hash } = require('./util');
+const { addFuncPrefix, Logger, hash } = require('./util');
 
 const acorn = require('acorn');
 const { walk }= require('estree-walker');
@@ -32,9 +32,12 @@ class Translator {
         this.newTracePath = path.join(this.rootTracePath, this.projectName + "_new");
 
         this.baseTraceFilePath = path.join(this.baseTracePath, this.projectName + "_base.json");
-        this.newTraceFilePath = path.join(this.newTracePath, this.projectName + "_new.json");
         this.baseTraceFuncPath = path.join(this.baseTracePath, this.projectName + "_base_func.json");
+        this.newTraceFilePath = path.join(this.newTracePath, this.projectName + "_new.json");
         this.newTraceFuncPath = path.join(this.newTracePath, this.projectName + "_new_func.json");
+
+		this.logPath = path.join(this.rootTracePath, "log");
+		this.logger = new Logger(path.join(this.logPath, "Bugfox.log"));
 
         this.traceDiffPath = path.join(this.rootTracePath, "diff");
 
@@ -49,36 +52,76 @@ class Translator {
     }
 
     async setUpProject() {
-        console.log("----------Bugfox: start setting up project----------");
+		let initialLog = "\n----------Bugfox: start setting up project----------\n\n";
+        console.log("\n----------Bugfox: start setting up project----------\n");
+
+		initialLog += ("Bugfox: clean folder " + this.config.generateFolder + "\n");
+		console.log("Bugfox: clean folder " + this.config.generateFolder);
         await fsp.rm(this.config.generateFolder, { recursive: true, force: true });
+
+		initialLog += ("Bugfox: create folder " + this.config.generateFolder + "\n");
+		console.log("Bugfox: create folder " + this.config.generateFolder);
         await fsp.mkdir(this.config.generateFolder, { recursive: true });
 
         // copy source code
+		initialLog += ("Bugfox: create folder " + this.rootProjectPath + "\n");
+		console.log("Bugfox: create folder " + this.rootProjectPath);
         await fsp.mkdir(this.rootProjectPath, { recursive: true });
+
+		initialLog += ("Bugfox: create folder " + this.baseTracePath + "\n");
+		console.log("Bugfox: create folder " + this.baseTracePath);
         await fsp.mkdir(this.baseTracePath, { recursive: true });
+
+		initialLog += ("Bugfox: create folder " + this.newTracePath + "\n");
+		console.log("Bugfox: create folder " + this.newTracePath);
         await fsp.mkdir(this.newTracePath, { recursive: true });
+
+		initialLog += ("Bugfox: create folder " + this.traceDiffPath + "\n");
+		console.log("Bugfox: create folder " + this.traceDiffPath);
         await fsp.mkdir(this.traceDiffPath, { recursive: true });
 
+		initialLog += ("Bugfox: create folder " + this.logPath + "\n");
+		console.log("Bugfox: create folder " + this.logPath);
+        fs.mkdirSync(this.logPath, { recursive: true });
+		
+		// After the initialization of directories, the logger could be used
+		this.logger.append(initialLog);
+
+		this.logger.log("copy folder " + this.config.sourceFolder + " to " + this.baseProjectPath);
         await fse.copy(this.config.sourceFolder, this.baseProjectPath);
+
+		this.logger.log("copy folder " + this.config.sourceFolder + " to " + this.newProjectPath);
         await fse.copy(this.config.sourceFolder, this.newProjectPath);
 
         const currentDir = process.cwd();
 
+		this.logger.log("", "");
+		this.logger.log("change process path to " + this.baseProjectPath);
         process.chdir(this.baseProjectPath);
+
+		this.logger.log("switch git commit to " + this.config.baseCommitID);
         execSync("git switch -d " + this.config.baseCommitID);
+
+		this.logger.log("", "");
+		this.logger.log("change process path to " + this.newProjectPath);
         process.chdir(this.newProjectPath);
+
+		this.logger.log("switch git commit to " + this.config.newCommitID);
         execSync("git switch -d " + this.config.newCommitID);
+
+		this.logger.log("", "");
+		this.logger.log("change process path to " + currentDir);
         process.chdir(currentDir);
-        console.log("----------Bugfox: end setting up project----------\n");
+        this.logger.logL("end setting up project");
     }
 
     // @str: has to be an valid statement
     getSingleAST(str) {
-        return acorn.parse(str, { ecmaVersion: "latest" }).body[0];
+        return acorn.parse(str, { ecmaVersion: "latest", sourceType: "module" }).body[0];
     }
 
 	getRestElem() {
-		return acorn.parse("(...args)=>{}", { ecmaVersion: "latest" }).body[0].expression.params[0];
+		return acorn.parse("(...args)=>{}", { ecmaVersion: "latest", sourceType: "module" }).body[0].expression.params[0];
 	}
 
     isIgnored(filePath, isBase) {
@@ -126,7 +169,7 @@ class Translator {
         blockStat.body.push(this.getSingleAST("global.BugfoxTracer.moveTop();"));
 
         // add the return statement
-        blockStat.body.push(acorn.parse("function f(result) { return result; }", { ecmaVersion: "latest" }).body[0].body.body[0]);
+        blockStat.body.push(acorn.parse("function f(result) { return result; }", { ecmaVersion: "latest", sourceType: "module" }).body[0].body.body[0]);
     }
 
     // To be updated in future
@@ -286,15 +329,16 @@ class Translator {
     // @TBD
     leaveTraverseAssignExpr(relativeFilePath, exprNode) {
         if (exprNode.left.type === "Identifier") {
+            this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
             if (this.isFuncExpr(exprNode.right)) {
 				let innerDecl = this.getSingleAST("const a = 0;");
 				innerDecl.declarations[0].id.name = addFuncPrefix(exprNode.left.name);
 				innerDecl.declarations[0].init = exprNode.right;
 				if (exprNode.right.type === "ArrowFunctionExpression") {
-					exprNode.right = acorn.parse("(...args)=>{}", { ecmaVersion: "latest" }).body[0].expression;
+					exprNode.right = acorn.parse("(...args)=>{}", { ecmaVersion: "latest", sourceType: "module" }).body[0].expression;
 				}
 				else if (exprNode.right.type === "FunctionExpression") {
-					exprNode.right = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest" }).body[0].declarations[0].init;
+					exprNode.right = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest", sourceType: "module" }).body[0].declarations[0].init;
 				}
 				exprNode.right.body.body.push(innerDecl);
 				this.buildBlockStat(exprNode.right.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
@@ -323,6 +367,8 @@ class Translator {
     // @TBD
     leaveTraverseVarDecl(relativeFilePath, declNode) {
         if (this.isFuncExpr(declNode.init)) {
+            this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
+
 			// translate this node
 			let innerDecl = this.getSingleAST("const a = 0;");
 
@@ -332,10 +378,10 @@ class Translator {
 			// move the function expression tree
 			innerDecl.declarations[0].init = declNode.init;
 			if (declNode.init.type === "ArrowFunctionExpression") {
-				declNode.init = acorn.parse("(...args)=>{}", { ecmaVersion: "latest" }).body[0].expression;
+				declNode.init = acorn.parse("(...args)=>{}", { ecmaVersion: "latest", sourceType: "module" }).body[0].expression;
 			}
 			else if (declNode.init.type === "FunctionExpression") {
-				declNode.init = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest" }).body[0].declarations[0].init;
+				declNode.init = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest", sourceType: "module" }).body[0].declarations[0].init;
 			}
 
 			// push the prefixed function
@@ -401,6 +447,7 @@ class Translator {
     // prefixed name, 3) add bunch of Tracer statements
     traverseLeave(relativeFilePath, node, parent, prop, index) {
         if (node.type === "FunctionDeclaration") { // normal function declaration
+            this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 			let innerFunc = this.getSingleAST("function f() {}");
 			
 			// move the params and block nodes
@@ -417,6 +464,12 @@ class Translator {
             this.currentFuncPath.pop();
         }
         else if (node.type === "MethodDefinition") {
+			if (node.kind === "constructor") {
+				this.currentFuncPath.pop();
+				return;
+			}
+
+            this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 			let innerFunc = this.getSingleAST("function f() {}");
 			
 			innerFunc.body = node.value.body;
@@ -431,14 +484,15 @@ class Translator {
             this.currentFuncPath.pop();
         }
         else if (node.type === "PropertyDefinition" && this.isFuncExpr(node.value)) {
+            this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 			let innerDecl = this.getSingleAST("const a = 0;");
 			innerDecl.declarations[0].id.name = addFuncPrefix(node.key.name);
 			innerDecl.declarations[0].init = node.value;
 			if (node.value.type === "ArrowFunctionExpression") {
-				node.value = acorn.parse("(...args)=>{}", { ecmaVersion: "latest" }).body[0].expression;
+				node.value = acorn.parse("(...args)=>{}", { ecmaVersion: "latest", sourceType: "module" }).body[0].expression;
 			}
 			else if (node.value.type === "FunctionExpression") {
-				node.value = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest" }).body[0].declarations[0].init;
+				node.value = acorn.parse("const func = function (...args) {};", { ecmaVersion: "latest", sourceType: "module" }).body[0].declarations[0].init;
 			}
 
 			node.value.body.body.push(innerDecl);
@@ -461,7 +515,7 @@ class Translator {
     // add the require statment to import Tracer module at the top
     insertTracerPath(fileAST) {
         let tracerStr = "const { _Tracer_ } = require(\'" + this.tracerFilePath + "\');";
-        let tracerAST = acorn.parse(tracerStr, { ecmaVersion: "latest" });
+        let tracerAST = acorn.parse(tracerStr, { ecmaVersion: "latest", sourceType: "module" });
         fileAST.body.splice(0, 0, tracerAST.body[0]);
     }
 
@@ -491,9 +545,11 @@ class Translator {
         }
 
         const file = await fsp.readFile(filePath, { encoding: 'utf8' });
-        let fileAST = acorn.parse(file, { ecmaVersion: "latest", sourceType: "module" });
 
+		this.logger.log("FILE - [" + relativeFilePath + "]");
+        let fileAST = acorn.parse(file, { ecmaVersion: "latest", sourceType: "module" });
         this.transAST(relativeFilePath, fileFuncHash, fileAST);
+		this.logger.log("", "");
 
         const newFile = generate(fileAST);
         await fsp.writeFile(filePath, newFile);
@@ -520,16 +576,21 @@ class Translator {
     async transProject() {
         await this.setUpProject();
 
-        console.log("----------Bugfox: start translating project----------");
+        this.logger.logL("start translating project");
+
         // translate base project recursively
+        this.logger.log("BASE PROJECT");
+		this.logger.log("", "");
         await this.transDir(this.baseProjectPath, true);
 
         // translate new project recursively
+        this.logger.log("NEW PROJECT");
+		this.logger.log("", "");
         await this.transDir(this.newProjectPath, false);
 
         await fsp.writeFile(this.baseTraceFuncPath, JSON.stringify(this.baseFuncHash, null, 2));
         await fsp.writeFile(this.newTraceFuncPath, JSON.stringify(this.newFuncHash, null, 2));
-        console.log("----------Bugfox: end translating project----------\n");
+        this.logger.logL("end translating project");
     }
 }
 module.exports.Translator = Translator;

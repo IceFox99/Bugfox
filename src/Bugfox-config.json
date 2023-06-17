@@ -1,14 +1,18 @@
 {
-    "sourceFolder": "/home/icefox99/Bugfox-test",
+    "sourceFolder": "/home/icefox99/Bugfox-example",
     "generateFolder": "/home/icefox99/BugfoxResult",
     "baseIgnoreFolder": [
-        "src/vendor"
     ],
     "newIgnoreFolder": [
-        "src/vendor"
     ],
-    "baseCommitID": "87095602141e01eb3fea7a95b9a1af6e0f2f5ba5",
-    "newCommitID": "7cfe263ee492d2c54906f796832a1225d8c7351e",
-    "baseCommand": "echo baseVersion",
-    "newCommand": "echo newVersion"
+    "baseCommitID": "564b7e172994b073b480f0165019718870b55029",
+    "newCommitID": "0582c084f1ace2597f65ceee3da2c583d9bf7deb",
+	"baseCommand": [
+		"cd src",
+		"node test_math.js"
+	],
+    "newCommand": [
+		"cd src",
+		"node test_math.js"
+	]
 }

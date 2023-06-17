@@ -10,6 +10,28 @@ const addFuncPrefix = (str) => {
 };
 module.exports.addFuncPrefix = addFuncPrefix;
 
+class Logger {
+	constructor(filePath) {
+		this.filePath = filePath;
+	}
+
+	log(str, prefix = "Bugfox: ", postfix = "") {
+		let newStr = prefix + str + postfix;
+		console.log(newStr);
+		fs.appendFileSync(this.filePath, newStr + "\n");
+	}
+
+	logL(str) {
+		let newStr = "\n----------Bugfox: " + str + "----------\n";
+		console.log(newStr);
+		fs.appendFileSync(this.filePath, newStr + "\n");
+	}
+
+	append(str) {
+		fs.appendFileSync(this.filePath, str);
+	}
+}
+module.exports.Logger = Logger;
 
 const getFuncEntries = (value) => {
     const keys = Object.keys(value);
@@ -66,6 +88,8 @@ const checkConfig = (config) => {
         throw new Error("Missing base command");
     if (!config.hasOwnProperty('newCommand'))
         throw new Error("Missing new command");
+	if (!Array.isArray(config.baseCommand) || !Array.isArray(config.newCommand))
+		throw new Error("Command must be an array");
 
     if (!path.isAbsolute(config.sourceFolder) || !path.isAbsolute(config.generateFolder))
         throw new Error("Project folder must be absolute path.");

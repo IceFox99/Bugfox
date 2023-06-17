@@ -2,6 +2,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { Logger } = require("./util");
 
 class Launcher {
     constructor(config) {
@@ -12,6 +13,9 @@ class Launcher {
         this.newProjectPath = path.join(this.rootProjectPath, this.projectName + "_new");
 
         this.rootTracePath = path.join(this.config.generateFolder, "trace");
+		this.logPath = path.join(this.rootTracePath, "log");
+		this.logger = new Logger(path.join(this.logPath, "Bugfox.log"));
+
         this.baseTracePath = path.join(this.rootTracePath, this.projectName + "_base");
         this.newTracePath = path.join(this.rootTracePath, this.projectName + "_new");
 
@@ -22,39 +26,77 @@ class Launcher {
     }
 
     async launch() {
-        console.log("----------Bugfox: launch project----------");
+        this.logger.logL("launch project");
+
+		this.logger.log("change process path to " + this.baseProjectPath);
         process.chdir(this.baseProjectPath);
-        let baseProject = spawn(this.config.baseCommand.split(" ")[0], this.config.baseCommand.split(" ").slice(1), {
-            env: { BugfoxConfig: JSON.stringify(this.config), isBugfoxBase: 'true' }
-        });
 
-        baseProject.stdout.on('data', (data) => {
-            process.stdout.write(data);
-        });
+		this.logger.log("executing base project");
+		let baseEnv = JSON.parse(JSON.stringify(process.env));
+		baseEnv.BugfoxConfig = JSON.stringify(this.config);
+		baseEnv.isBugfoxBase = "true";
+		let baseChildDir = this.baseProjectPath;
+		for (const command of this.config.baseCommand) {
+			if (command.split(" ")[0] === "cd") {
+				baseChildDir = path.join(baseChildDir, command.split(" ")[1]);
+				continue;
+			}
 
-        baseProject.stderr.on('data', (data) => {
-            process.stderr.write(data);
-        });
+        	let baseProject = spawn(command.split(" ")[0], command.split(" ").slice(1), {
+				cwd: baseChildDir,
+        	    env: baseEnv
+        	});
 
+        	baseProject.stdout.on('data', ((data) => {
+        	    process.stdout.write(data);
+				this.logger.append(data, "", "");
+        	}).bind(this));
+
+        	baseProject.stderr.on('data', ((data) => {
+        	    process.stderr.write(data);
+				this.logger.append(data, "", "");
+        	}).bind(this));
+
+        	await Promise.all([
+        	    new Promise((resolve) => baseProject.on('close', resolve)),
+        	]);
+		}
+
+		this.logger.log("change process path to " + this.newProjectPath, "\nBugfox: ");
         process.chdir(this.newProjectPath);
-        let newProject = spawn(this.config.newCommand.split(" ")[0], this.config.newCommand.split(" ").slice(1), {
-            env: { BugfoxConfig: JSON.stringify(this.config), isBugfoxBase: 'false' }
-        });
 
-        newProject.stdout.on('data', (data) => {
-            process.stdout.write(data);
-        });
+		this.logger.log("executing new project");
+		let newEnv = JSON.parse(JSON.stringify(process.env));
+		newEnv.BugfoxConfig = JSON.stringify(this.config);
+		newEnv.isBugfoxBase = "false";
+		let newChildDir = this.newProjectPath;
+		for (const command of this.config.newCommand) {
+			if (command.split(" ")[0] === "cd") {
+				newChildDir = path.join(newChildDir, command.split(" ")[1]);
+				continue;
+			}
 
-        newProject.stderr.on('data', (data) => {
-            process.stderr.write(data);
-        });
+        	let newProject = spawn(command.split(" ")[0], command.split(" ").slice(1), {
+				cwd: newChildDir,
+        	    env: newEnv
+        	});
+
+        	newProject.stdout.on('data', ((data) => {
+        	    process.stdout.write(data);
+				this.logger.append(data, "", "");
+        	}).bind(this));
+
+        	newProject.stderr.on('data', ((data) => {
+        	    process.stderr.write(data);
+				this.logger.append(data, "", "");
+        	}).bind(this));
+
+        	await Promise.all([
+        	    new Promise((resolve) => newProject.on('close', resolve))
+        	]);
+		}
         
-        await Promise.all([
-            new Promise((resolve) => baseProject.on('close', resolve)),
-            new Promise((resolve) => newProject.on('close', resolve))
-        ]);
-
-        console.log("----------Bugfox: finish project----------\n");
+        this.logger.logL("finish project");
         return [ JSON.parse(fs.readFileSync(this.baseTraceFile)), JSON.parse(fs.readFileSync(this.newTraceFile)) ];
     }
 }
