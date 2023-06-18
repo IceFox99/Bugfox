@@ -48,7 +48,7 @@ class Translator {
 
         // temporary variables
         this.currentFuncPath = []; // [ Func@funcName.., Class@className.. ]
-		this.isSkipped = false;
+		this.isSkipped = 0;
     }
 
     async setUpProject() {
@@ -228,12 +228,15 @@ class Translator {
     enterTraverseAssignExpr(relativeFilePath, fileFuncHash, exprNode) {
         if (exprNode.left.type === "Identifier") {
             if (this.isFuncExpr(exprNode.right)) {
+				if (this.isSkipped !== 0)
+					return;
+
                 this.currentFuncPath.push("FuncVar@" + exprNode.left.name);
                 fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(exprNode.right));
             }
         }
         else if (exprNode.left.type === "ArrayPattern") {
-			this.isSkipped = true;
+			this.isSkipped++;
 			// To be updated in future
             //for (let i = 0; i < exprNode.left.elements.length; ++i) {
             //    if (exprNode.right.elements === undefined || exprNode.right.elements.length < i + 1)
@@ -255,11 +258,14 @@ class Translator {
     // @TBD
     enterTraverseVarDecl(relativeFilePath, fileFuncHash, declNode) {
         if (this.isFuncExpr(declNode.init)) {
+			if (this.isSkipped !== 0)
+				return;
+
             this.currentFuncPath.push("FuncVar@" + declNode.id.name);
             fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declNode));
         }
         else if (declNode.id.type === "ArrayPattern") {
-			this.isSkipped = true;
+			this.isSkipped++;
 			// To be updated in future
             //for (let i = 0; i < declNode.id.elements.length; ++i) {
             //    if (declNode.init.elements === undefined || declNode.init.elements.length < i + 1)
@@ -329,8 +335,12 @@ class Translator {
     // @TBD
     leaveTraverseAssignExpr(relativeFilePath, exprNode) {
         if (exprNode.left.type === "Identifier") {
-            this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
+			if (this.isSkipped !== 0)
+				return;
+
             if (this.isFuncExpr(exprNode.right)) {
+            	this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
+
 				let innerDecl = this.getSingleAST("const a = 0;");
 				innerDecl.declarations[0].id.name = addFuncPrefix(exprNode.left.name);
 				innerDecl.declarations[0].init = exprNode.right;
@@ -346,10 +356,10 @@ class Translator {
             }
         }
         else if (exprNode.left.type === "ArrayPattern") {
-			this.isSkipped = false;
+			this.isSkipped--;
 			// To be updated in future
             //for (let i = 0; i < exprNode.left.elements.length; ++i) {
-			//	// TBD
+			//	// @TBD
             //    if (exprNode.right.elements === undefined || exprNode.right.elements.length < i + 1)
             //        return;
 
@@ -367,6 +377,9 @@ class Translator {
     // @TBD
     leaveTraverseVarDecl(relativeFilePath, declNode) {
         if (this.isFuncExpr(declNode.init)) {
+			if (this.isSkipped !== 0)
+				return;
+
             this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 
 			// translate this node
@@ -392,7 +405,7 @@ class Translator {
             this.currentFuncPath.pop();
         }
         else if (declNode.id.type === "ArrayPattern") {
-			this.isSkipped = false;
+			this.isSkipped--;
 			// To be updated in future
             //for (let i = 0; i < declNode.id.elements.length; ++i) {
             //    if (declNode.init.elements === undefined || declNode.init.elements.length < i + 1)
@@ -415,22 +428,36 @@ class Translator {
 
     // store the function's hash values of that file
     traverseEnter(relativeFilePath, fileFuncHash, node, parent, prop, index) {
-		if (this.isSkipped)
-			return;
-
         if (node.type === "FunctionDeclaration") { // normal function declaration
+			if (this.isSkipped !== 0)
+				return;
+
             this.currentFuncPath.push("Func@" + node.id.name);
             fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
         }
         else if (node.type === "MethodDefinition") {
+			if (node.kind === "constructor") {
+				this.isSkipped++;
+				return;
+			}
+
+			if (this.isSkipped !== 0)
+				return;
+
             this.currentFuncPath.push("Func@" + node.key.name);
             fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
         }
         else if (node.type === "PropertyDefinition" && this.isFuncExpr(node.value)) {
+			if (this.isSkipped !== 0)
+				return;
+
             this.currentFuncPath.push("FuncVar@" + node.key.name);
             fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
         }
         else if (node.type === "ClassDeclaration") {
+			if (this.isSkipped !== 0)
+				return;
+
             this.currentFuncPath.push("Class@" + node.id.name);
         }
         else if (node.type === "VariableDeclarator") {
@@ -447,6 +474,9 @@ class Translator {
     // prefixed name, 3) add bunch of Tracer statements
     traverseLeave(relativeFilePath, node, parent, prop, index) {
         if (node.type === "FunctionDeclaration") { // normal function declaration
+			if (this.isSkipped !== 0)
+				return;
+
             this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 			let innerFunc = this.getSingleAST("function f() {}");
 			
@@ -465,9 +495,12 @@ class Translator {
         }
         else if (node.type === "MethodDefinition") {
 			if (node.kind === "constructor") {
-				this.currentFuncPath.pop();
+				this.isSkipped--;
 				return;
 			}
+
+			if (this.isSkipped !== 0)
+				return;
 
             this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 			let innerFunc = this.getSingleAST("function f() {}");
@@ -484,6 +517,9 @@ class Translator {
             this.currentFuncPath.pop();
         }
         else if (node.type === "PropertyDefinition" && this.isFuncExpr(node.value)) {
+			if (this.isSkipped !== 0)
+				return;
+
             this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 			let innerDecl = this.getSingleAST("const a = 0;");
 			innerDecl.declarations[0].id.name = addFuncPrefix(node.key.name);
