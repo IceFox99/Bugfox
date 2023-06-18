@@ -9,11 +9,11 @@ checkConfig(config);
 
 (async () => {
 	const translator = new Translator(config);
-    await translator.transProject();
+	await translator.transProject();
 
 	const launcher = new Launcher(config);
-    const result = await launcher.launch();
+	const result = await launcher.launch();
 
-    const comparator = new Comparator(config, result);
-    await comparator.compare();
+	const comparator = new Comparator(config, result);
+	await comparator.compare();
 })();

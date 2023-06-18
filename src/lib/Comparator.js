@@ -4,17 +4,17 @@ const path = require('path');
 const { Logger } = require('./util');
 
 class Comparator {
-    constructor(config, result) {
-        this.config = config;
-        this.baseFuncStack = result[0];
-        this.newFuncStack = result[1];
+	constructor(config, result) {
+		this.config = config;
+		this.baseFuncStack = result[0];
+		this.newFuncStack = result[1];
 
-        this.rootTracePath = path.join(this.config.generateFolder, "trace");
+		this.rootTracePath = path.join(this.config.generateFolder, "trace");
 		this.logPath = path.join(this.rootTracePath, "log");
 		this.logger = new Logger(path.join(this.logPath, "Bugfox.log"));
 
-        this.traceDiffPath = path.join(this.rootTracePath, "diff");
-    }
+		this.traceDiffPath = path.join(this.rootTracePath, "diff");
+	}
 
 	async compare() {
 		if (this.baseFuncStack.callee.length !== this.newFuncStack.callee.length)
