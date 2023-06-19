@@ -26,7 +26,7 @@ class Launcher {
 	}
 
 	async launch() {
-		this.logger.logL("launch project");
+		this.logger.logL("LAUNCH PROJECTS");
 
 		this.logger.log("change process path to " + this.baseProjectPath);
 		process.chdir(this.baseProjectPath);
@@ -96,8 +96,8 @@ class Launcher {
 			]);
 		}
 		
-		this.logger.logL("finish project");
-		return [ JSON.parse(fs.readFileSync(this.baseTraceFile)), JSON.parse(fs.readFileSync(this.newTraceFile)) ];
+		this.logger.logL("FINISH PROJECTS");
+		//return [ JSON.parse(fs.readFileSync(this.baseTraceFile)), JSON.parse(fs.readFileSync(this.newTraceFile)) ];
 	}
 }
 module.exports.Launcher = Launcher;

@@ -1,3 +1,4 @@
+"use strict";
 const config = require('./'+process.argv[2]);
 const { checkConfig } = require('./lib/util');
 const { Translator } = require('./lib/Translator');
@@ -12,8 +13,8 @@ checkConfig(config);
 	await translator.transProject();
 
 	const launcher = new Launcher(config);
-	const result = await launcher.launch();
+	await launcher.launch();
 
-	const comparator = new Comparator(config, result);
+	const comparator = new Comparator(config);
 	await comparator.compare();
 })();

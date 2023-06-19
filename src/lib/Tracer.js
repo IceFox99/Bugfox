@@ -1,10 +1,10 @@
 "use strict";
 
 const { FuncStack } = require('./FuncStack');
-const { toJSON } = require('./util');
 const fs = require('fs');
 const path = require('path');
 
+// Will only be imported by the source project, not the Bugfox itself
 class Tracer {
 	constructor(config, isBase) {
 		this.config = config;
@@ -14,20 +14,12 @@ class Tracer {
 		this.isBase = isBase;
 	}
 
-	getFuncStack(index) {
-		let funcStack = this.baseFuncStack;
-		for (let i = 0; i < index.length; i++) {
-			funcStack = funcStack.callee[index[i]];
-		}
-		return funcStack;
-	}
-
 	static buildFuncStack(funcName) {
 		return new FuncStack(funcName);
 	}
 
 	push(funcStack) {
-		if (this.currentFuncStack == null)
+		if (this.currentFuncStack === null)
 			throw new Error("Tracer uninitialized!");
 
 		this.currentFuncStack.pushCallee(funcStack); // pushCallee() will update id and index immediately
@@ -39,7 +31,7 @@ class Tracer {
 		if (this.currentFuncStack.index.length <= 0)
 			throw new Error("Reach highest call stack, can't move top.");
 
-		this.currentFuncStack = this.getFuncStack(this.currentFuncStack.index.slice(0, this.currentFuncStack.index.length - 1)); 
+		this.currentFuncStack = FuncStack.getFuncStack(this.baseFuncStack, this.currentFuncStack.index.slice(0, this.currentFuncStack.index.length - 1)); 
 	}
 
 	writeFuncStacks() {
@@ -51,7 +43,7 @@ class Tracer {
 }
 module.exports._Tracer_ = Tracer;
 
-if (global.BugfoxTracer == undefined) {
+if (global.BugfoxTracer === undefined) {
 	global.BugfoxTracer = new Tracer(JSON.parse(process.env.BugfoxConfig), process.env.isBugfoxBase === 'true');
 	process.on('exit', () => {
 		global.BugfoxTracer.writeFuncStacks();

@@ -41,7 +41,7 @@ class Translator {
 
 		this.traceDiffPath = path.join(this.rootTracePath, "diff");
 
-		// funcHash[relativeFilePath][funcName] get the hash of function
+		// funcHash[fullFuncName] get the hash of function
 		// node-types: FunctionDeclaration, MethodDefinition, PropertyDefinition, FunctionExpression, ArrowFunctionExpression
 		this.baseFuncHash = {}; 
 		this.newFuncHash = {};
@@ -52,8 +52,8 @@ class Translator {
 	}
 
 	async setUpProject() {
-		let initialLog = "\n----------Bugfox: start setting up project----------\n\n";
-		console.log("\n----------Bugfox: start setting up project----------\n");
+		let initialLog = "\n----------Bugfox: START SETTING UP PROJECTS----------\n\n";
+		console.log("\n----------Bugfox: START SETTING UP PROJECTS----------\n");
 
 		initialLog += ("Bugfox: clean folder " + this.config.generateFolder + "\n");
 		console.log("Bugfox: clean folder " + this.config.generateFolder);
@@ -112,7 +112,7 @@ class Translator {
 		this.logger.log("", "");
 		this.logger.log("change process path to " + currentDir);
 		process.chdir(currentDir);
-		this.logger.logL("end setting up project");
+		this.logger.logL("END SETTING UP PROJECTS");
 	}
 
 	// @str: has to be an valid statement
@@ -153,7 +153,8 @@ class Translator {
 		blockStat.body.push(this.getSingleAST("let funcStack = _Tracer_.buildFuncStack(\'" + fullFuncName + "\');"));
 		
 		// add the setBeforeStats
-		blockStat.body.push(this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.id, this, args);"));
+		blockStat.body.push(this.getSingleAST("let tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
+		blockStat.body.push(this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcName, tempThis, args);"));
 
 		// add the push and move
 		blockStat.body.push(this.getSingleAST("global.BugfoxTracer.push(funcStack);"));
@@ -163,7 +164,8 @@ class Translator {
 		blockStat.body.push(this.getSingleAST("const result = " + generatedFuncName + ".bind(this)(...args);"));
 
 		// add the setAfterStats
-		blockStat.body.push(this.getSingleAST("funcStack.setAfterStats(this, args, result);"));
+		blockStat.body.push(this.getSingleAST("tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
+		blockStat.body.push(this.getSingleAST("funcStack.setAfterStats(tempThis, args, result);"));
 
 		// add the moveTop
 		blockStat.body.push(this.getSingleAST("global.BugfoxTracer.moveTop();"));
@@ -173,7 +175,7 @@ class Translator {
 	}
 
 	// To be updated in future
-	//enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex) {
+	//enterTraverseExprArrPatt(relativeFilePath, funcHash, exprNode, arrIndex) {
 	//	let tempLeftNode = exprNode.left;
 	//	let tempRightNode = exprNode.right;
 	//	for (const i of arrIndex) {
@@ -187,19 +189,19 @@ class Translator {
 
 	//		if (this.isFuncExpr(tempRightNode.elements[i])) {
 	//			this.currentFuncPath.push("FuncVar@" + tempLeftNode.elements[i].name);
-	//			fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(tempRightNode.elements[i]));
+	//			funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(tempRightNode.elements[i]));
 	//			this.currentFuncPath.pop();
 	//		}
 	//		else if (tempLeftNode.elements[i].type === "ArrayPattern") {
 	//			arrIndex.push(i);
-	//			this.enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
+	//			this.enterTraverseExprArrPatt(relativeFilePath, funcHash, exprNode, arrIndex);
 	//			arrIndex.pop();
 	//		}
 	//	}
 	//}
 
 	// To be updated in future
-	//enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, declNode, arrIndex) {
+	//enterTraverseDeclArrPatt(relativeFilePath, funcHash, declNode, arrIndex) {
 	//	let tempLeftNode = declNode.id;
 	//	let tempRightNode = declNode.init;
 	//	for (const i of arrIndex) {
@@ -213,26 +215,26 @@ class Translator {
 
 	//		if (this.isFuncExpr(tempRightNode.elements[i])) {
 	//			this.currentFuncPath.push("FuncVar@" + tempLeftNode.elements[i].name);
-	//			fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(tempRightNode.elements[i]));
+	//			funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(tempRightNode.elements[i]));
 	//			this.currentFuncPath.pop();
 	//		}
 	//		else if (tempLeftNode.elements[i].type === "ArrayPattern") {
 	//			arrIndex.push(i);
-	//			this.enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
+	//			this.enterTraverseDeclArrPatt(relativeFilePath, funcHash, exprNode, arrIndex);
 	//			arrIndex.pop();
 	//		}
 	//	}
 	//}
 
 	// @TBD
-	enterTraverseAssignExpr(relativeFilePath, fileFuncHash, exprNode) {
+	enterTraverseAssignExpr(relativeFilePath, funcHash, exprNode) {
 		if (exprNode.left.type === "Identifier") {
 			if (this.isFuncExpr(exprNode.right)) {
 				if (this.isSkipped !== 0)
 					return;
 
 				this.currentFuncPath.push("FuncVar@" + exprNode.left.name);
-				fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(exprNode.right));
+				funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(exprNode.right));
 			}
 		}
 		else if (exprNode.left.type === "ArrayPattern") {
@@ -244,25 +246,25 @@ class Translator {
 
 			//	if (this.isFuncExpr(exprNode.right.elements[i])) {
 			//		this.currentFuncPath.push("FuncVar@" + exprNode.left.elements[i].name);
-			//		fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(exprNode.right.elements[i]));
+			//		funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(exprNode.right.elements[i]));
 			//		this.currentFuncPath.pop();
 			//	}
 			//	else if (exprNode.left.elements[i].type === "ArrayPattern") {
 			//		let arrIndex = [i];
-			//		this.enterTraverseExprArrPatt(relativeFilePath, fileFuncHash, exprNode, arrIndex);
+			//		this.enterTraverseExprArrPatt(relativeFilePath, funcHash, exprNode, arrIndex);
 			//	}
 			//}
 		}
 	}
 
 	// @TBD
-	enterTraverseVarDecl(relativeFilePath, fileFuncHash, declNode) {
+	enterTraverseVarDecl(relativeFilePath, funcHash, declNode) {
 		if (this.isFuncExpr(declNode.init)) {
 			if (this.isSkipped !== 0)
 				return;
 
 			this.currentFuncPath.push("FuncVar@" + declNode.id.name);
-			fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declNode));
+			funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declNode));
 		}
 		else if (declNode.id.type === "ArrayPattern") {
 			this.isSkipped++;
@@ -273,12 +275,12 @@ class Translator {
 
 			//	if (this.isFuncExpr(declNode.init.elements[i])) {
 			//		this.currentFuncPath.push("FuncVar@" + declNode.id.elements[i].name);
-			//		fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declNode.init.elements[i]));
+			//		funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(declNode.init.elements[i]));
 			//		this.currentFuncPath.pop();
 			//	}
 			//	else if (declNode.id.elements[i].type === "ArrayPattern") {
 			//		let arrIndex = [i];
-			//		this.enterTraverseDeclArrPatt(relativeFilePath, fileFuncHash, declNode, arrIndex);
+			//		this.enterTraverseDeclArrPatt(relativeFilePath, funcHash, declNode, arrIndex);
 			//	}
 			//}
 		}
@@ -427,13 +429,13 @@ class Translator {
 	}
 
 	// store the function's hash values of that file
-	traverseEnter(relativeFilePath, fileFuncHash, node, parent, prop, index) {
+	traverseEnter(relativeFilePath, funcHash, node, parent, prop, index) {
 		if (node.type === "FunctionDeclaration") { // normal function declaration
 			if (this.isSkipped !== 0)
 				return;
 
 			this.currentFuncPath.push("Func@" + node.id.name);
-			fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
+			funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
 		}
 		else if (node.type === "MethodDefinition") {
 			if (node.kind === "constructor") {
@@ -445,14 +447,14 @@ class Translator {
 				return;
 
 			this.currentFuncPath.push("Func@" + node.key.name);
-			fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
+			funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
 		}
 		else if (node.type === "PropertyDefinition" && this.isFuncExpr(node.value)) {
 			if (this.isSkipped !== 0)
 				return;
 
 			this.currentFuncPath.push("FuncVar@" + node.key.name);
-			fileFuncHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
+			funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
 		}
 		else if (node.type === "ClassDeclaration") {
 			if (this.isSkipped !== 0)
@@ -461,10 +463,10 @@ class Translator {
 			this.currentFuncPath.push("Class@" + node.id.name);
 		}
 		else if (node.type === "VariableDeclarator") {
-			this.enterTraverseVarDecl(relativeFilePath, fileFuncHash, node);
+			this.enterTraverseVarDecl(relativeFilePath, funcHash, node);
 		}
 		else if (node.type === "AssignmentExpression") {
-			this.enterTraverseAssignExpr(relativeFilePath, fileFuncHash, node);
+			this.enterTraverseAssignExpr(relativeFilePath, funcHash, node);
 		}
 	}
 
@@ -556,35 +558,33 @@ class Translator {
 	}
 
 	// @relativeFilePath: absolute file path
-	// @fileFuncHash: base/new FuncHash in this translator
-	transAST(relativeFilePath, fileFuncHash, fileAST) {
+	// @funcHash: base/new FuncHash in this translator
+	transAST(relativeFilePath, funcHash, fileAST) {
 		this.insertTracerPath(fileAST);
 
 		walk(fileAST, {
-			enter: this.traverseEnter.bind(this, relativeFilePath, fileFuncHash),
+			enter: this.traverseEnter.bind(this, relativeFilePath, funcHash),
 			leave: this.traverseLeave.bind(this, relativeFilePath)
 		});
 	}
 
 	// @filePath: absolute file path
 	async transFile(filePath, isBase) {
-		let fileFuncHash, relativeFilePath;
+		let funcHash, relativeFilePath;
 		if (isBase) {
 			relativeFilePath = path.relative(this.baseProjectPath, filePath);
-			this.baseFuncHash[relativeFilePath] = {};
-			fileFuncHash = this.baseFuncHash[relativeFilePath];
+			funcHash = this.baseFuncHash;
 		}
 		else {
 			relativeFilePath = path.relative(this.newProjectPath, filePath);
-			this.newFuncHash[relativeFilePath] = {};
-			fileFuncHash = this.newFuncHash[relativeFilePath];
+			funcHash = this.newFuncHash;
 		}
 
 		const file = await fsp.readFile(filePath, { encoding: 'utf8' });
 
 		this.logger.log("FILE - [" + relativeFilePath + "]");
 		let fileAST = acorn.parse(file, { ecmaVersion: "latest", sourceType: "module" });
-		this.transAST(relativeFilePath, fileFuncHash, fileAST);
+		this.transAST(relativeFilePath, funcHash, fileAST);
 		this.logger.log("", "");
 
 		const newFile = generate(fileAST);
@@ -612,7 +612,7 @@ class Translator {
 	async transProject() {
 		await this.setUpProject();
 
-		this.logger.logL("start translating project");
+		this.logger.logL("START TRANSLATING PROJECTS");
 
 		// translate base project recursively
 		this.logger.log("BASE PROJECT");
@@ -626,7 +626,7 @@ class Translator {
 
 		await fsp.writeFile(this.baseTraceFuncPath, JSON.stringify(this.baseFuncHash, null, 2));
 		await fsp.writeFile(this.newTraceFuncPath, JSON.stringify(this.newFuncHash, null, 2));
-		this.logger.logL("end translating project");
+		this.logger.logL("END TRANSLATING PROJECTS");
 	}
 }
 module.exports.Translator = Translator;
