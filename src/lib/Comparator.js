@@ -34,12 +34,11 @@ class Comparator {
 		this.baseFuncStack = JSON.parse(fs.readFileSync(this.baseTraceFile));
 		this.newFuncStack = JSON.parse(fs.readFileSync(this.newTraceFile));
 
-		// analyzing each comparison based on four information (called as code): 
+		// analyzing each comparison based on three information: 
 		// 0) is code changed
 		// 1) is before information changed (beforeThis, beforeArgs)
 		// 2) is after informationn changed (afterThis, afterArgs, returnVal)
-		// 3) is callee different (length + funcName)
-		// look like { index, isCodeChanged, isBeforeChanged, isAfterChanged, isCalleeChanged }
+		// look like { index, isCodeChanged, isBeforeChanged, isAfterChanged }
 		this.diffs = []; 
 		this.candidates = [];
 	}
@@ -56,9 +55,106 @@ class Comparator {
 		}
 	}
 
+	// @TBD
 	getAnalysis(diff) {
-		// @TBD
-		return "";
+		if (diff.isCodeChanged) {
+			if (diff.isBeforeChanged) {
+				if (diff.isAfterChanged) {
+					// 111
+					return "Most complicated situation, probably caused by the huge refactor of this function, please check all information includes its caller, callee and arguments.\n\n" +
+						"Possible reason:\n" +
+						"0) this function has been updated incorrectly\n" +
+						"1) received unexpected parameters from its caller\n" +
+						"2) received correct parameters but behaved incorrectly\n" +
+						"3) the code is incompatible with its caller or callee\n" +
+						"\nPossible solutions:\n" +
+						"0) check the modification of this function\n" +
+						"1) check all the differences include arguments, \"this\", return value between two commits\n" +
+						"2) traverse its function body with different arguments\n" +
+						"3) refactor this function, its caller and callee to make them compatible";
+				}
+				else {
+					// 110
+					return "Candidate situation, which may worked correctly or not, please check this function's modification, its caller and the different arguments that passed to this function.\n\n" +
+						"Possible reasons:\n" +
+						"0) this function has been updated incorrectly\n" +
+						"1) received unexpected parameters from its caller\n" +
+						"2) received correct parameters but should have different return value or different behaviors\n" +
+						"\nPossible solutions:\n" +
+						"0) check the modification of this function\n" +
+						"1) traverse its function body to see whether the function should have different behavior based on different arguments\n" +
+						"2) refactor this function to make it compatible with it calller";
+				}
+			}
+			else {
+				if (diff.isAfterChanged) {
+					// 101
+					return "Probably caused by the update of this function, please check this function's modification and its callee.\n\n" +
+						"Possible reasons:\n" +
+						"0) this function has been updated incorrectly (highest probability)\n" +
+						"1) the code is incompatible with its callee\n" +
+						"\nPossible solutions:\n" + 
+						"0) check the modification of this function\n" +
+						"1) traverse its function body with the arguments\n" +
+						"2) check its callee's contents and whether the callee have been refactored";
+				}
+				else {
+					// 100
+					// do nothing
+					return "Great refactor, worked as expected, no exception found.";
+				}
+			}
+		}
+		else {
+			if (diff.isBeforeChanged) {
+				if (diff.isAfterChanged) {
+					// 011
+					return "Probably caused by the different arguments, please check its CALLER \"" + 
+						FuncStack.getFuncStack(this.baseFuncStack, diff.index).caller + 
+						"\" and the different arguments that passed to this function.\n\n" +
+						"Possible reasons:\n" +
+						"0) this function received unexpected arguments (highest probability)\n" +
+						"1) the code is incompatible with its caller\n" +
+						"\nPossible solutions:\n" +
+						"0) check its caller and the different arguments\n" +
+						"1) traverse its function body with received different arguments\n" +
+						"2) refactor this function to make it compatible with its caller\n" +
+						"3) check its callee's contents and whether the callee have been refactored";
+				}
+				else {
+					// 010
+					return "Candidate situation, which may worked correctly or not, please check its CALLER \"" + 
+						FuncStack.getFuncStack(this.baseFuncStack, diff.index).caller + 
+						"\" and the different arguments that passed to this function.\n\n" +
+						"Possible reasons:\n" +
+						"0) this function received unexpected arguments\n" +
+						"1) received correct parameters but should have different return value or different behaviors\n" +
+						"2) the code is incompatible with its callee\n" +
+						"\nPossible solutions:\n" +
+						"0) check its caller and the different arguments\n" +
+						"1) traverse its function body to see whether the function should have different behavior based on different arguments\n" +
+						"2) refactor this function to make it compatible with it calller";
+				}
+			}
+			else {
+				if (diff.isAfterChanged) {
+					// 001
+					return "Unknown behavior inside this function, please check its CALLEE.\n\n" + 
+						"Possible reasons:\n" +
+						"0) callee of this function have been refactored\n" +
+						"1) program being affected by global value inside this function\n" +
+						"\nPossible solutions:\n" +
+						"0) refactor this function to make it compatible with its callee\n" +
+						"1) check its callee's contents and compare the program path inside this function\n" +
+						"2) be aware of the global variable being accessed inside this function";
+				}
+				else {
+					// 000
+					// do nothing
+					return "Worked as expected, no exception found.";
+				}
+			}
+		}
 	}
 
 	getCompStr(diff) {
@@ -72,20 +168,23 @@ class Comparator {
 		str += ("caller: " + baseFS.caller + "\n");
 		str += ("isCodeChanged: " + diff.isCodeChanged + "\n");
 		str += ("isBeforeChanged: " + diff.isBeforeChanged + "\n");
-		str += ("isAfterChanged: " + diff.isAfterChanged + "\n");
-		str += ("isCalleeChanged: " + diff.isCalleeChanged + "\n\n");
+		str += ("isAfterChanged: " + diff.isAfterChanged + "\n\n");
 
 		str += ("[COMPARISON]\n");
-		str += ("BASE->beforeThis: " + baseFS.beforeThis + "\n");
-		str += ("NEW-->beforeThis: " + newFS.beforeThis + "\n");
-		str += ("BASE->beforeArgs: " + baseFS.beforeArgs + "\n");
-		str += ("NEW-->beforeArgs: " + newFS.beforeArgs + "\n");
-		str += ("BASE->afterThis: " + baseFS.afterThis + "\n");
-		str += ("NEW-->afterThis: " + newFS.afterThis + "\n");
-		str += ("BASE->afterArgs: " + baseFS.afterArgs + "\n");
-		str += ("NEW-->afterArgs: " + newFS.afterArgs + "\n");
-		str += ("BASE->returnVal: " + baseFS.returnVal + "\n");
-		str += ("NEW-->returnVal: " + newFS.returnVal + "\n");
+		str += ("| BASE->beforeThis: " + baseFS.beforeThis + "\n");
+		str += ("| NEW-->beforeThis: " + newFS.beforeThis + "\n");
+		str += ("|------------------\n");
+		str += ("| BASE->beforeArgs: " + baseFS.beforeArgs + "\n");
+		str += ("| NEW-->beforeArgs: " + newFS.beforeArgs + "\n");
+		str += ("|-----------------\n");
+		str += ("| BASE->afterThis: " + baseFS.afterThis + "\n");
+		str += ("| NEW-->afterThis: " + newFS.afterThis + "\n");
+		str += ("|-----------------\n");
+		str += ("| BASE->afterArgs: " + baseFS.afterArgs + "\n");
+		str += ("| NEW-->afterArgs: " + newFS.afterArgs + "\n");
+		str += ("|-----------------\n");
+		str += ("| BASE->returnVal: " + baseFS.returnVal + "\n");
+		str += ("| NEW-->returnVal: " + newFS.returnVal + "\n");
 		str += ("~".repeat(20) + "FUNCTION: " + baseFS.funcName + "~".repeat(20));
 		return str;
 	}
@@ -179,178 +278,77 @@ class Comparator {
 		// is the information after the function call changed (afterThis + afterArgs + returnVal)
 		const isAfterChanged = (baseFS.afterThis !== newFS.afterThis) || (baseFS.afterArgs !== newFS.afterArgs) || (baseFS.returnVal !== newFS.returnVal);
 
-		// is the callee of this function stack changed
-		const isCalleeChanged = !(this.checkCallee(baseFS, newFS));
-
-		const diff = { index, isCodeChanged, isBeforeChanged, isAfterChanged, isCalleeChanged };
+		const diff = { index, isCodeChanged, isBeforeChanged, isAfterChanged };
 		
 		if (isCodeChanged) {
 			if (isBeforeChanged) {
 				if (isAfterChanged) {
-					if (isCalleeChanged) {
-						// 1111
-						// completely refactor
-						// mark this comparison and stop
-						this.diffs.push(diff);
-					}
-					else {
-						// 1110
-						// may caused by the changed of this function
-						// mark this comparison
-						this.diffs.push(diff);
-
-						// iterate their subtree recursively
-						//for (let i = 0; i < baseFS.callee.length; ++i) {
-						//	await this.compFuncStack([...index, i]);
-						//}
-					}
+					// 111
+					this.diffs.push(diff);
 				}
 				else {
-					if (isCalleeChanged) {
-						// 1101
-						// weird situation
-						// add to the candidates list
-						this.candidates.push(diff);
-					}
-					else {
-						// 1100
-						// weird situation
-						// add to the candidates list
-						this.candidates.push(diff);
-					}
+					// 110
+					this.candidates.push(diff);
 				}
 			}
 			else {
 				if (isAfterChanged) {
-					if (isCalleeChanged) {
-						// 1011
-						// may caused by the changed of this function
-						// mark this comparison
-						this.diffs.push(diff);
+					// 101
+					// probably caused by the change of this function
+					// mark this comparison
+					this.diffs.push(diff);
 
-						// iterate their subtree recursively until meet different function
-						for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i) {
-							const baseChild = FuncStack.getFuncStack(this.baseFuncStack, [...index, i]);
-							const newChild = FuncStack.getFuncStack(this.newFuncStack, [...index, i]);
-							if (baseChild.funcName !== newChild.funcName)
-								return;
+					for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i) {
+						const baseChild = FuncStack.getFuncStack(this.baseFuncStack, [...index, i]);
+						const newChild = FuncStack.getFuncStack(this.newFuncStack, [...index, i]);
+						if (baseChild.funcName !== newChild.funcName)
+							return;
 
-							await this.compFuncStack([...index, i]);
-						}
-					}
-					else {
-						// 1010
-						// may caused by the changed of this function
-						// mark this comparison
-						this.diffs.push(diff);
-
-						// iterate their subtree recursively
-						for (let i = 0; i < baseFS.callee.length; ++i) {
-							await this.compFuncStack([...index, i]);
-						}
+						await this.compFuncStack([...index, i]);
 					}
 				}
 				else {
-					if (isCalleeChanged) {
-						// 1001
-						// perfect refactor
-						// do nothing
-					}
-					else {
-						// 1000
-						// perfect refactor
-						// do nothing
-					}
+					// 100
+					// perfect refactor
+					// do nothing
 				}
 			}
 		}
 		else {
 			if (isBeforeChanged) {
 				if (isAfterChanged) {
-					if (isCalleeChanged) {
-						// 0111
-						// probably caused by different input
-						// mark this comparison
-						this.diffs.push(diff);
-
-						// iterate their subtree recursively until meet different function
-						//for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i) {
-						//	const baseChild = FuncStack.getFuncStack(this.baseFuncStack, [...index, i]);
-						//	const newChild = FuncStack.getFuncStack(this.newFuncStack, [...index, i]);
-						//	if (baseChild.funcName !== newChild.funcName)
-						//		return;
-
-						//	await this.compFuncStack([...index, i]);
-						//}
-					}
-					else {
-						// 0110
-						// probably caused by different input
-						// mark this comparison
-						this.diffs.push(diff);
-
-						// iterate their subtreer recursively
-						//for (let i = 0; i < baseFS.callee.length; ++i) {
-						//	await this.compFuncStack([...index, i]);
-						//}
-					}
+					// 011
+					// probably caused by different inpu
+					// mark this comparison
+					this.diffs.push(diff);
 				}
 				else {
-					if (isCalleeChanged) {
-						// 0101
-						// weird situation
-						// add to the candidates list
-						this.candidates.push(diff);
-					}
-					else {
-						// 0100
-						// weird situation
-						// add to the candidates list
-						this.candidates.push(diff);
-					}
+					// 010
+					// weird situation
+					this.candidates.push(diff);
 				}
 			}
 			else {
 				if (isAfterChanged) {
-					if (isCalleeChanged) {
-						// 0011
-						// may caused by the changed of callee function's update
-						// mark this comparison
-						this.diffs.push(diff);
+					// 001
+					// probably caused by the change of callee function's update
+					// mark this comparison
+					this.diffs.push(diff);
 
-						// iterate their subtree recursively until meet different function
-						for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i) {
-							const baseChild = FuncStack.getFuncStack(this.baseFuncStack, [...index, i]);
-							const newChild = FuncStack.getFuncStack(this.newFuncStack, [...index, i]);
-							if (baseChild.funcName !== newChild.funcName)
-								return;
+					// iterate their subtree recursively until meet different function
+					for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i) {
+						const baseChild = FuncStack.getFuncStack(this.baseFuncStack, [...index, i]);
+						const newChild = FuncStack.getFuncStack(this.newFuncStack, [...index, i]);
+						if (baseChild.funcName !== newChild.funcName)
+							return;
 
-							await this.compFuncStack([...index, i]);
-						}
-					}
-					else {
-						// 0010
-						// may caused by the changed of callee function's update
-						// mark this comparison
-						this.diffs.push(diff);
-
-						// iterate their subtree recursively
-						for (let i = 0; i < baseFS.callee.length; ++i) {
-							await this.compFuncStack([...index, i]);
-						}
+						await this.compFuncStack([...index, i]);
 					}
 				}
 				else {
-					if (isCalleeChanged) {
-						// 0001
-						// callee changed but still considered as perfect
-						// do nothing
-					}
-					else {
-						// 0000
-						// executed perfectly as usual
-						// do nothing
-					}
+					// 000
+					// executed perfectly as usual
+					// do nothing
 				}
 			}
 		}
