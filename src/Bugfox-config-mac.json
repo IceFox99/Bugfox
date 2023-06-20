@@ -1,17 +1,17 @@
 {
-    "sourceFolder": "/Users/icefox99/Bugfox-example",
-    "generateFolder": "/Users/icefox99/BugfoxResult",
-    "baseIgnoreFolder": [
-    ],
-    "newIgnoreFolder": [
-    ],
-    "baseCommitID": "c6b49b85aa7532cf849b6bd534be6528860c45c2",
-    "newCommitID": "60027f81a696fcf6637b13a7d03693d71c83684f",
+	"sourceFolder": "/Users/icefox99/Bugfox-example",
+	"generateFolder": "/Users/icefox99/BugfoxResult",
+	"baseIgnoreFolder": [
+	],
+	"newIgnoreFolder": [
+	],
+	"baseCommitID": "c6b49b85aa7532cf849b6bd534be6528860c45c2",
+	"newCommitID": "60027f81a696fcf6637b13a7d03693d71c83684f",
 	"baseCommand": [
 		"cd src",
 		"node test_math.js"
 	],
-    "newCommand": [
+	"newCommand": [
 		"cd src",
 		"node test_math.js"
 	]
