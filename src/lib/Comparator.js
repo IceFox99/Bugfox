@@ -207,7 +207,7 @@ class Comparator {
 
 	getFirstDeepestIndexs(diffs) {
 		if (diffs.length === 0)
-			return null;
+			return [];
 
 		let lastDiff, resDiffs = [], isFinished = false;
 
@@ -244,8 +244,11 @@ class Comparator {
 	}
 
 	async analyze() {
-		//this.logger.log(JSON.stringify(this.diffs, null, 2), "");
-		//this.logger.log(JSON.stringify(this.candidates, null, 2), "");
+		if (this.diffs.length === 0) {
+			this.logger.log("No regression found.");
+			return;
+		}
+
 		for (const deepDiff of this.getFirstDeepestIndexs(this.diffs)) {
 			this.logger.log("[TEST " + deepDiff.index[0] + "] " + FuncStack.getFuncStack(this.baseFuncStack, [deepDiff.index[0]]).funcName, "");
 			this.logger.log(this.getCompStr(deepDiff), "");
