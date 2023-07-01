@@ -206,13 +206,11 @@ class Comparator {
 	}
 
 	getFirstDeepestIndexs(diffs) {
-		if (diffs.length === 0)
-			return [];
-
-		let lastDiff, resDiffs = [], isFinished = false;
+		let lastDiff = null, resDiffs = [], isFinished = false;
 
 		for (const diff of diffs) {
 			if (diff.index.length === 1) {
+				resDiffs.push(diff); // push the depth-1 diff as backup
 				lastDiff = diff;
 				isFinished = false;
 				continue;
@@ -222,6 +220,7 @@ class Comparator {
 				continue;
 
 			if (diff.index.length <= lastDiff.index.length) {
+				resDiffs.pop(); // pop the depth-1 diff
 				resDiffs.push(lastDiff);
 				isFinished = true;
 				lastDiff = diff;
@@ -230,6 +229,7 @@ class Comparator {
 				
 			for (let i = 0; i < lastDiff.index.length; ++i) {
 				if (diff.index[i] !== lastDiff.index[i]) {
+					resDiffs.pop(); // pop the depth-1 diff
 					resDiffs.push(lastDiff);
 					isFinished = true;
 					lastDiff = diff;
@@ -254,18 +254,6 @@ class Comparator {
 			this.logger.log(this.getCompStr(deepDiff), "");
 			this.logger.log("\n", "");
 		}
-	}
-
-	// the number of callees must not be 0
-	checkCallee(leftFS, rightFS) {
-		if (leftFS.callee.length !== rightFS.callee.length)
-			return false;
-		
-		for (let i = 0; i < leftFS.callee.length; ++i) {
-			if (leftFS.callee[i].funcName !== rightFS.callee[i].funcName)
-				return false;
-		}
-		return true;
 	}
 
 	async compFuncStack(index) {
@@ -359,11 +347,16 @@ class Comparator {
 
 	async compare() {
 		this.logger.logL("START ANALYZING");
-		if (!this.checkCallee(this.baseFuncStack, this.newFuncStack))
-			throw new Error("[DEPTH 1] test codes being changed, please run same test module");
 		
 		// For each test function
 		for (let i = 0; i < this.baseFuncStack.callee.length; ++i) {
+			const baseFS = FuncStack.getFuncStack(this.baseFuncStack, [i]);
+			const newFS = FuncStack.getFuncStack(this.newFuncStack, [i]);
+			if (baseFS.funcName !== newFS.funcName) {
+				this.logger.log("[DEPTH 1] Can't compare function " + baseFS.funcName + " and " + newFS.funcName + ", stop comparing remaining call graph.");
+				break;
+			}
+
 			await this.compFuncStack([i]);
 		}
 
