@@ -1,5 +1,5 @@
 "use strict";
-const { toJSON, hash } = require('./util');
+const { toJSON } = require('./util');
 
 class FuncStack {
 	constructor(funcName) {
@@ -12,7 +12,6 @@ class FuncStack {
 		this.afterThis = undefined; // reference
 		this.afterArgs = undefined; // json format
 		this.returnVal = undefined; // json format
-		//this.id = funcName;
 	}
 
 	static getFuncStack(baseFuncStack, index) {
@@ -25,18 +24,11 @@ class FuncStack {
 
 	setBeforeStats(caller, beforeThis, beforeArgs) {
 		this.caller = caller;
-		//if ((beforeThis === global) || (beforeThis === undefined) || (beforeThis === module.exports))
-		//	this.beforeThis = null;
-		//else
 		this.beforeThis = toJSON(beforeThis);
 		this.beforeArgs = toJSON(beforeArgs);
-		//this.updateID();
 	}
 
 	setAfterStats(afterThis, afterArgs, returnVal) {
-		//if ((afterThis === global) || (afterThis === undefined) || (afterThis === module.exports))
-		//	this.afterThis = null;
-		//else
 		this.afterThis = toJSON(afterThis);
 		this.afterArgs = toJSON(afterArgs);
 		this.returnVal = toJSON(returnVal);
@@ -55,18 +47,5 @@ class FuncStack {
 	getDepth() { return this.index.length; } // Entry point funcStack has depth 0
 	isDeepest() { return this.callee.length === 0; }
 	isTop() { return (this.caller === undefined) ? true : false; }
-
-	//static calculateID(funcName, callerFuncName, beforeThis, beforeArgs) {
-	//	return [funcName, callerFuncName, hash(toJSON(beforeThis)), hash(beforeArgs)].join(":");
-	//}
-
-	//updateID() {
-	//	if (this.caller === undefined) {
-	//		this.id = this.funcName;
-	//		return;
-	//	}
-
-	//	this.id = FuncStack.calculateID(this.funcName, this.caller.split(":")[0], this.beforeThis, this.beforeArgs);
-	//}
 }
 module.exports.FuncStack = FuncStack;

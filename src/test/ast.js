@@ -4,7 +4,7 @@ function func(a,b,c) {} // FunctionDeclaration
 
 const arrow = (...args) => {}; // VariableDeclaration -> ArrowFunctionExpression
 
-const arrow2 = function () {}; // VariableDeclaration -> FunctionExpression
+const arrow2 = function arrow2 () {}; // VariableDeclaration -> FunctionExpression
 
 // Won't be translated
 // const [ arrow4, arrow5 ] = [ (i) => { return i; }, (j) => { return j; } ];
@@ -30,5 +30,5 @@ let empty = () => {}, empty2 = function () { }, empty3 = 3;
 empty = (x) => x;
 
 // Wont't be transalted, please write codes like a normal human being
-//[damn, [shit, fuck]] = [()=>{},[()=>{}, ()=>{}]];
-//let [foo, [zoo, boo]] = [(foo)=>{}, [(zoo)=>{}, (boo)=>{}]];
+[damn, [shit, fuck]] = [()=>{},[()=>{}, ()=>{}]];
+let [foo, [zoo, boo]] = [(foo)=>{}, [(zoo)=>{}, (boo)=>{}]];

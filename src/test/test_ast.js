@@ -13,11 +13,6 @@ const { generate } = require('astring');
 (async () => {
     const source = await fsp.readFile("/home/icefox99/Bugfox/src/test/ast.js");
     let ast = acorn.parse(source, { ecmaVersion: "latest", sourceType: "module" });
-    //let tracerPath = "/home/icefox99/Bugfox/src/lib/Tracer.js";
-    //let insertStr = "const { _Tracer_ } = require(\'" + tracerPath + "\');";
-    //let insert = acorn.parse(insertStr, { ecmaVersion: "latest" });
-    //ast.body.splice(0, 0, insert.body[0]);
-    //console.log(JSON.stringify(ast));
     walk(ast, {
         enter(node, parent, prop, index) {
             console.log("ENTERING:");
