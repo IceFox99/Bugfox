@@ -1,7 +1,6 @@
 "use strict";
-const { spawn } = require('child_process');
+const { exec } = require('child_process');
 const path = require('path');
-const fs = require('fs');
 const { Logger } = require("./util");
 
 class Launcher {
@@ -42,7 +41,7 @@ class Launcher {
 				continue;
 			}
 
-			let baseProject = spawn(command.split(" ")[0], command.split(" ").slice(1), {
+			let baseProject = exec(command, {
 				cwd: baseChildDir,
 				env: baseEnv
 			});
@@ -76,7 +75,7 @@ class Launcher {
 				continue;
 			}
 
-			let newProject = spawn(command.split(" ")[0], command.split(" ").slice(1), {
+			let newProject = exec(command, {
 				cwd: newChildDir,
 				env: newEnv
 			});
@@ -97,7 +96,6 @@ class Launcher {
 		}
 		
 		this.logger.logL("FINISH PROJECTS");
-		//return [ JSON.parse(fs.readFileSync(this.baseTraceFile)), JSON.parse(fs.readFileSync(this.newTraceFile)) ];
 	}
 }
 module.exports.Launcher = Launcher;
