@@ -49,13 +49,15 @@ const toJSON = (data) => {
 		if (!isCyclic && typeof value === 'function') {
 			const entries = getFuncEntries(value);
 			if (entries.length <= 0)
-				return defaultString;
+				return value.toString();
 			else
-				return `{"#Function":"${value.toString()}","#Attributes":${toJSON(entries)}}`;
+				return `{"#Function":"${value.toString()}","#Attributes":${prune(entries, options)}}`;
 		}
+		else if (value === undefined)
+			return "UNDEFINED";
 		else
 			return JSON.stringify(value);
-	}});
+	}, arrayMaxLength: 50, depthDecr: 6 });
 };
 module.exports.toJSON = toJSON;
 
