@@ -186,10 +186,18 @@ class Translator {
 				this.currentFuncPath.push("FuncVar@" + parent.id.name);
 				funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
 			}
+			else if (parent.type === "AssignmentExpression") {
+				this.currentFuncPath.push("FuncExpr@" + generate(parent.left));
+				funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
+			}
 		}
 		else if (node.type === "ArrowFunctionExpression") {
 			if (parent.type === "VariableDeclarator") {
 				this.currentFuncPath.push("FuncVar@" + parent.id.name);
+				funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
+			}
+			else if (parent.type === "AssignmentExpression") {
+				this.currentFuncPath.push("FuncExpr@" + generate(parent.left));
 				funcHash[this.getFullFuncName(relativeFilePath)] = hash(generate(node));
 			}
 			// Ignore the property definition and assignment expression
@@ -260,6 +268,21 @@ class Translator {
 
 				this.currentFuncPath.pop();
 			}
+			else if (parent.type === "AssignmentExpression") {
+				this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
+				let innerFunc = JSON.parse(JSON.stringify(node));
+
+				innerFunc.type = "FunctionDeclaration";
+				innerFunc.id = this.getSingleAST("Bugfox_ANONYMOUS").expression;
+
+				node.body = this.getSingleAST("{}");
+				node.params = [ this.getRestElem() ];
+				node.body.body.push(innerFunc);
+
+				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerFunc.id.name);
+
+				this.currentFuncPath.pop();
+			}
 		}
 		else if (node.type === "ArrowFunctionExpression") {
 			if (parent.type === "VariableDeclarator") {
@@ -267,6 +290,22 @@ class Translator {
 
 				let innerDecl = this.getSingleAST("const a = 0;");
 				innerDecl.declarations[0].id.name = addFuncPrefix(parent.id.name);
+
+				//innerDecl.declarations[0].init = parent.init;
+				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
+				parent.init.params = [ this.getRestElem() ];
+				parent.init.body = this.getSingleAST("{}");
+
+				parent.init.body.body.push(innerDecl);
+				this.buildBlockStat(parent.init.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
+
+				this.currentFuncPath.pop();
+			}
+			else if (parent.type === "AssignmentExpression") {
+				this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
+
+				let innerDecl = this.getSingleAST("const a = 0;");
+				innerDecl.declarations[0].id.name = "Bugfox_ANONYMOUS";
 
 				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
