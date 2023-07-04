@@ -1,7 +1,7 @@
 "use strict";
 const { exec } = require('child_process');
 const path = require('path');
-const { Logger } = require("./util");
+const { removeEscapeCode, Logger } = require("./util");
 
 class Launcher {
 	constructor(config) {
@@ -48,12 +48,12 @@ class Launcher {
 
 			baseProject.stdout.on('data', ((data) => {
 				process.stdout.write(data);
-				this.logger.append(data, "", "");
+				this.logger.append(removeEscapeCode(data), "", "");
 			}).bind(this));
 
 			baseProject.stderr.on('data', ((data) => {
 				process.stderr.write(data);
-				this.logger.append(data, "", "");
+				this.logger.append(removeEscapeCode(data), "", "");
 			}).bind(this));
 
 			await Promise.all([
