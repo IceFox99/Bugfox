@@ -293,11 +293,11 @@ class Translator {
 
 				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
-				parent.init.params = [ this.getRestElem() ];
-				parent.init.body = this.getSingleAST("{}");
+				node.params = [ this.getRestElem() ];
+				node.body = this.getSingleAST("{}");
 
-				parent.init.body.body.push(innerDecl);
-				this.buildBlockStat(parent.init.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
+				node.body.body.push(innerDecl);
+				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
 
 				this.currentFuncPath.pop();
 			}
@@ -309,11 +309,11 @@ class Translator {
 
 				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
-				parent.init.params = [ this.getRestElem() ];
-				parent.init.body = this.getSingleAST("{}");
+				node.params = [ this.getRestElem() ];
+				node.body = this.getSingleAST("{}");
 
-				parent.init.body.body.push(innerDecl);
-				this.buildBlockStat(parent.init.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
+				node.body.body.push(innerDecl);
+				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
 
 				this.currentFuncPath.pop();
 			}
