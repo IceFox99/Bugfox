@@ -3,12 +3,20 @@
 const crypto = require("crypto");
 const prune = require("../vendor/JSON.prune/JSON.prune");
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const addFuncPrefix = (str) => {
 	return "Bugfox_Original_" + str; 
 };
 module.exports.addFuncPrefix = addFuncPrefix;
+
+const removeEscapeCode = (string) => {
+    return string.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '')
+        .replace(/\[([0-9]{1,2}(;[0-9]{1,2})*)?m/g, '')
+		.replace(/\r/g, '');
+};
+module.exports.removeEscapeCode = removeEscapeCode;
 
 class Logger {
 	constructor(filePath) {
