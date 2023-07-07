@@ -100,14 +100,14 @@ class Translator {
 		process.chdir(this.baseProjectPath);
 
 		this.logger.log("switch git commit to " + this.config.baseCommitID);
-		execSync("git switch -d " + this.config.baseCommitID);
+		execSync("git switch -d -f " + this.config.baseCommitID);
 
 		this.logger.log("", "");
 		this.logger.log("change process path to " + this.newProjectPath);
 		process.chdir(this.newProjectPath);
 
 		this.logger.log("switch git commit to " + this.config.newCommitID);
-		execSync("git switch -d " + this.config.newCommitID);
+		execSync("git switch -d -f " + this.config.newCommitID);
 
 		this.logger.log("", "");
 		this.logger.log("change process path to " + currentDir);
