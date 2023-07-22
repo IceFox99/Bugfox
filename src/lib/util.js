@@ -12,8 +12,7 @@ const addFuncPrefix = (str) => {
 module.exports.addFuncPrefix = addFuncPrefix;
 
 const removeEscapeCode = (string) => {
-    return string.replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '')
-        .replace(/\[([0-9]{1,2}(;[0-9]{1,2})*)?m/g, '')
+    return string.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/g, '')
 		.replace(/\r/g, '');
 };
 module.exports.removeEscapeCode = removeEscapeCode;
@@ -59,7 +58,7 @@ const toJSON = (data) => {
 			if (entries.length <= 0)
 				return value.toString();
 			else
-				return `{"#Function":"${value.toString()}","#Attributes":${prune(entries, options)}}`;
+				return `{"#Function":"${JSON.stringify(value.toString())}","#Attributes":${prune(entries, options)}}`;
 		}
 		else if (value === undefined)
 			return "UNDEFINED";
