@@ -1,6 +1,9 @@
 "use strict";
 const { exec } = require('child_process');
 const path = require('path');
+const fs = require('fs');
+const fsp = fs.promises;
+const fse = require('fs-extra');
 const { removeEscapeCode, Logger } = require("./util");
 
 class Launcher {
@@ -10,6 +13,7 @@ class Launcher {
 		this.rootProjectPath = path.join(this.config.generateFolder, "project");
 		this.baseProjectPath = path.join(this.rootProjectPath, this.projectName + "_base");
 		this.newProjectPath = path.join(this.rootProjectPath, this.projectName + "_new");
+		this.runProjectPath = path.join(this.rootProjectPath, this.projectName + "_run");
 
 		this.rootTracePath = path.join(this.config.generateFolder, "trace");
 		this.logPath = path.join(this.rootTracePath, "log");
@@ -27,14 +31,18 @@ class Launcher {
 	async launch() {
 		this.logger.logL("LAUNCH PROJECTS");
 
-		this.logger.log("change process path to " + this.baseProjectPath);
-		process.chdir(this.baseProjectPath);
+		this.logger.log("copy base project to running enviroment");
+		await fsp.rm(this.runProjectPath, { recursive: true, force: true });
+		await fse.copy(this.baseProjectPath, this.runProjectPath);
+
+		this.logger.log("change process path to " + this.runProjectPath);
+		process.chdir(this.runProjectPath);
 
 		this.logger.log("***EXECUTING BASE PROJECT***");
 		let baseEnv = JSON.parse(JSON.stringify(process.env));
 		baseEnv.BugfoxConfig = JSON.stringify(this.config);
 		baseEnv.isBugfoxBase = "true";
-		let baseChildDir = this.baseProjectPath;
+		let baseChildDir = this.runProjectPath;
 		for (const command of this.config.baseCommand) {
 			if (command.split(" ")[0] === "cd") {
 				baseChildDir = path.join(baseChildDir, command.split(" ")[1]);
@@ -61,14 +69,18 @@ class Launcher {
 			]);
 		}
 
-		this.logger.log("change process path to " + this.newProjectPath, "\nBugfox: ");
-		process.chdir(this.newProjectPath);
+		this.logger.log("copy new project to running enviroment", "\nBugfox: ");
+		await fsp.rm(this.runProjectPath, { recursive: true, force: true });
+		await fse.copy(this.newProjectPath, this.runProjectPath);
+
+		this.logger.log("change process path to " + this.runProjectPath);
+		process.chdir(this.runProjectPath);
 
 		this.logger.log("***EXECUTING NEW PROJECT***");
 		let newEnv = JSON.parse(JSON.stringify(process.env));
 		newEnv.BugfoxConfig = JSON.stringify(this.config);
 		newEnv.isBugfoxBase = "false";
-		let newChildDir = this.newProjectPath;
+		let newChildDir = this.runProjectPath;
 		for (const command of this.config.newCommand) {
 			if (command.split(" ")[0] === "cd") {
 				newChildDir = path.join(newChildDir, command.split(" ")[1]);
@@ -95,6 +107,7 @@ class Launcher {
 			]);
 		}
 		
+		await fsp.rm(this.runProjectPath, { recursive: true, force: true });
 		this.logger.logL("FINISH PROJECTS");
 	}
 }
