@@ -120,10 +120,6 @@ class Translator {
 		return acorn.parse(str, { ecmaVersion: "latest", sourceType: "module" }).body[0];
 	}
 
-	getRestElem() {
-		return acorn.parse("(...args)=>{}", { ecmaVersion: "latest", sourceType: "module" }).body[0].expression.params[0];
-	}
-
 	isIgnored(filePath, isBase) {
 		if (isBase) {
 			const relativePath = path.relative(this.baseProjectPath, filePath);
@@ -148,18 +144,19 @@ class Translator {
 		
 		// add the setBeforeStats
 		blockStat.body.push(this.getSingleAST("let tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
-		blockStat.body.push(this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcName, tempThis, args);"));
+		blockStat.body.push(this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcName, tempThis, [...arguments]);"));
 
 		// add the push and move
 		blockStat.body.push(this.getSingleAST("global.BugfoxTracer.push(funcStack);"));
 		blockStat.body.push(this.getSingleAST("global.BugfoxTracer.move(funcStack);"));
 
 		// add the original function's call
-		blockStat.body.push(this.getSingleAST("const result = " + generatedFuncName + ".bind(this)(...args);"));
+		blockStat.body.push(this.getSingleAST("const result = " + generatedFuncName + ".bind(this)(...arguments);"));
 
 		// add the setAfterStats
 		blockStat.body.push(this.getSingleAST("tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
-		blockStat.body.push(this.getSingleAST("funcStack.setAfterStats(tempThis, args, result);"));
+
+		blockStat.body.push(this.getSingleAST("funcStack.setAfterStats(result, tempThis, [...arguments]);"));
 
 		// add the moveTop
 		blockStat.body.push(this.getSingleAST("global.BugfoxTracer.moveTop();"));
@@ -220,7 +217,6 @@ class Translator {
 			innerFunc.id.name = addFuncPrefix(node.id.name);
 			node.body = this.getSingleAST("{}");
 
-			node.params = [ this.getRestElem() ];
 			node.body.body.push(innerFunc);
 
 			this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerFunc.id.name);
@@ -245,7 +241,6 @@ class Translator {
 				innerFunc.id.name = addFuncPrefix(node.id.name);
 
 				node.body = this.getSingleAST("{}");
-				node.params = [ this.getRestElem() ];
 				node.body.body.push(innerFunc);
 
 				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerFunc.id.name);
@@ -261,7 +256,6 @@ class Translator {
 				innerFunc.id.name = addFuncPrefix(innerFunc.id.name);
 
 				node.body = this.getSingleAST("{}");
-				node.params = [ this.getRestElem() ];
 				node.body.body.push(innerFunc);
 
 				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerFunc.id.name);
@@ -273,10 +267,9 @@ class Translator {
 				let innerFunc = JSON.parse(JSON.stringify(node));
 
 				innerFunc.type = "FunctionDeclaration";
-				innerFunc.id = this.getSingleAST("Bugfox_ANONYMOUS").expression;
+				innerFunc.id = this.getSingleAST("Bugfox_INNERFUNC").expression;
 
 				node.body = this.getSingleAST("{}");
-				node.params = [ this.getRestElem() ];
 				node.body.body.push(innerFunc);
 
 				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerFunc.id.name);
@@ -293,7 +286,6 @@ class Translator {
 
 				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
-				node.params = [ this.getRestElem() ];
 				node.body = this.getSingleAST("{}");
 
 				node.body.body.push(innerDecl);
@@ -305,11 +297,10 @@ class Translator {
 				this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 
 				let innerDecl = this.getSingleAST("const a = 0;");
-				innerDecl.declarations[0].id.name = "Bugfox_ANONYMOUS";
+				innerDecl.declarations[0].id.name = "Bugfox_INNERFUNC";
 
 				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
-				node.params = [ this.getRestElem() ];
 				node.body = this.getSingleAST("{}");
 
 				node.body.body.push(innerDecl);
@@ -322,22 +313,11 @@ class Translator {
 			this.logger.log("translating " + this.getFullFuncName(relativeFilePath));
 
 			if (node.kind === "constructor") {
-				//blockStat.body.push(this.getSingleAST("let funcStack = _Tracer_.buildFuncStack(\'" + fullFuncName + "\');"));
 				let index = 0;
 				node.value.body.body.splice(index++, 0, this.getSingleAST("let funcStack = _Tracer_.buildFuncStack(\'" + this.getFullFuncName(relativeFilePath) + "\');"));
 
-				let args = "[";
-				if (node.value.params.length !== 0) {
-					args += generate(node.value.params[0]);
-				}
-				for (let i = 1; i < node.value.params.length; ++i) {
-					args += ", ";
-					args += generate(node.value.params[i]);
-				}
-				args += "]";
-				
 				// add the setBeforeStats
-				node.value.body.body.splice(index++, 0, this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcName, null, " + args + ");"));
+				node.value.body.body.splice(index++, 0, this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcName, null, [...arguments]);"));
 
 				// add the push and move
 				node.value.body.body.splice(index++, 0, this.getSingleAST("global.BugfoxTracer.push(funcStack);"));
@@ -345,7 +325,7 @@ class Translator {
 
 				// add the setAfterStats
 				node.value.body.body.push(this.getSingleAST("let tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
-				node.value.body.body.push(this.getSingleAST("funcStack.setAfterStats(tempThis, " + args + ", null);"));
+				node.value.body.body.push(this.getSingleAST("funcStack.setAfterStats(null, tempThis, [...arguments]);"));
 
 				// add the moveTop
 				node.value.body.body.push(this.getSingleAST("global.BugfoxTracer.moveTop();"));
@@ -356,7 +336,6 @@ class Translator {
 				node.key.name = addFuncPrefix(node.key.name);
 				
 				copyMeth.value.body = this.getSingleAST("{}");
-				copyMeth.value.params = [ this.getRestElem() ];
 				
 				this.buildBlockStat(copyMeth.value.body, this.getFullFuncName(relativeFilePath), "this." + node.key.name);
 				
