@@ -120,6 +120,10 @@ class Translator {
 		return acorn.parse(str, { ecmaVersion: "latest", sourceType: "module" }).body[0];
 	}
 
+	getRestElem() {
+		return acorn.parse("(...args)=>{}", { ecmaVersion: "latest", sourceType: "module" }).body[0].expression.params[0];
+	}
+
 	isIgnored(filePath, isBase) {
 		if (isBase) {
 			const relativePath = path.relative(this.baseProjectPath, filePath);
@@ -138,25 +142,34 @@ class Translator {
 	// build the block statement after inserting the original function
 	// @fullFuncName: src/add.js#add
 	// @generatedFuncName: Bugfox_Original_add
-	buildBlockStat(blockStat, fullFuncName, generatedFuncName) {
+	buildBlockStat(blockStat, fullFuncName, generatedFuncName, isArrow = false) {
 		// add the buildFuncStack statement
 		blockStat.body.push(this.getSingleAST("let funcStack = _Tracer_.buildFuncStack(\'" + fullFuncName + "\');"));
 		
 		// add the setBeforeStats
 		blockStat.body.push(this.getSingleAST("let tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
-		blockStat.body.push(this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcName, tempThis, [...arguments]);"));
+		if (isArrow)
+			blockStat.body.push(this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcName, tempThis, args);"));
+		else
+			blockStat.body.push(this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcName, tempThis, [...arguments]);"));
 
 		// add the push and move
 		blockStat.body.push(this.getSingleAST("global.BugfoxTracer.push(funcStack);"));
 		blockStat.body.push(this.getSingleAST("global.BugfoxTracer.move(funcStack);"));
 
 		// add the original function's call
-		blockStat.body.push(this.getSingleAST("const result = " + generatedFuncName + ".bind(this)(...arguments);"));
+		if (isArrow)
+			blockStat.body.push(this.getSingleAST("const result = " + generatedFuncName + ".bind(this)(...args);"));
+		else
+			blockStat.body.push(this.getSingleAST("const result = " + generatedFuncName + ".bind(this)(...arguments);"));
 
 		// add the setAfterStats
 		blockStat.body.push(this.getSingleAST("tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
 
-		blockStat.body.push(this.getSingleAST("funcStack.setAfterStats(result, tempThis, [...arguments]);"));
+		if (isArrow)
+			blockStat.body.push(this.getSingleAST("funcStack.setAfterStats(result, tempThis, args);"));
+		else
+			blockStat.body.push(this.getSingleAST("funcStack.setAfterStats(result, tempThis, [...arguments]);"));
 
 		// add the moveTop
 		blockStat.body.push(this.getSingleAST("global.BugfoxTracer.moveTop();"));
@@ -286,10 +299,11 @@ class Translator {
 
 				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
+				node.params = [ this.getRestElem() ];
 				node.body = this.getSingleAST("{}");
 
 				node.body.body.push(innerDecl);
-				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
+				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name, true);
 
 				this.currentFuncPath.pop();
 			}
@@ -301,10 +315,11 @@ class Translator {
 
 				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
+				node.params = [ this.getRestElem() ];
 				node.body = this.getSingleAST("{}");
 
 				node.body.body.push(innerDecl);
-				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name);
+				this.buildBlockStat(node.body, this.getFullFuncName(relativeFilePath), innerDecl.declarations[0].id.name, true);
 
 				this.currentFuncPath.pop();
 			}
