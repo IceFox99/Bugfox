@@ -26,7 +26,7 @@ Besides, Bugfox is designed to be user-friendly, ***all you need is just a JSON 
 ## Installation
 
 ```shell
-$ git clone --recursive https://github.com/IceFox99/Bugfox.git
+$ git clone https://github.com/IceFox99/Bugfox.git
 $ cd Bugfox
 $ npm install
 ```
@@ -36,7 +36,6 @@ $ npm install
 - [Git](https://git-scm.com)
 - [Node.js](https://nodejs.org)
 - [acorn@8.8.2](https://github.com/acornjs/acorn)
-- [JSON.prune@1.1.0](https://github.com/Canop/JSON.prune)
 - [ast-types@0.14.2](https://github.com/benjamn/ast-types)
 - [astring@1.8.6](https://github.com/davidbonnet/astring)
 - [estree-walker@2.0.2](https://github.com/Rich-Harris/estree-walker)

@@ -1,3 +1,0 @@
-[submodule "src/vendor/JSON.prune"]
-	path = src/vendor/JSON.prune
-	url = https://github.com/Canop/JSON.prune.git
