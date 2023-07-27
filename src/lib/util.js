@@ -1,9 +1,7 @@
 "use strict";
 
 const crypto = require("crypto");
-const prune = require("../vendor/JSON.prune/JSON.prune");
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 
 const addFuncPrefix = (str) => {
@@ -40,32 +38,41 @@ class Logger {
 }
 module.exports.Logger = Logger;
 
-const getFuncEntries = (value) => {
-	const keys = Object.keys(value);
-	const entries = {};
-	keys.forEach((key) => {
-		const descriptor = Object.getOwnPropertyDescriptor(value, key);
-		if (!descriptor || descriptor.get === undefined)
-			entries[key] = value[key];
-	});
-	return entries;
+const formatObj = (obj, seen = new WeakSet()) => {
+	if (obj === undefined)
+		return "-undefined-";
+	else if (typeof obj !== 'object' && typeof obj !== 'function')
+		return obj;
+	else if (obj === null)
+		return obj;
+
+	if (seen.has(obj))
+		return '[Circular]';
+	seen.add(obj);
+	
+	const result = Array.isArray(obj) ? [] : {};
+	for (const key of Object.getOwnPropertyNames(obj)) {
+		const descriptor = Object.getOwnPropertyDescriptor(obj, key);
+		if (descriptor && typeof descriptor.get === 'function')
+			continue;
+
+		const value = obj[key];
+		result[key] = formatObj(value, seen);
+	}
+
+	return result;
 };
 
 const toJSON = (data) => {
-	return prune(data, { replacer: function(value, defaultString, isCyclic, options) {
-		if (!isCyclic && typeof value === 'function') {
-			const entries = getFuncEntries(value);
-			if (entries.length <= 0)
-				return value.toString();
-			else
-				return `{"#Function":"${JSON.stringify(value.toString())}","#Attributes":${prune(entries, options)}}`;
-		}
-		else if (value === undefined)
-			return "UNDEFINED";
+	const format_obj = formatObj(data);
+	if (typeof data === 'function') {
+		if (Object.keys(format_obj).length === 0)
+			return JSON.stringify(data.toString());
 		else
-			return JSON.stringify(value);
-	}, arrayMaxLength: 50, depthDecr: 6 });
-};
+			return `{"-Function-":"${JSON.stringify(data.toString())}","-Attributes-":${JSON.stringify(format_obj)}}`;
+	}
+	return JSON.stringify(format_obj);
+}
 module.exports.toJSON = toJSON;
 
 const hash = (input) => {
