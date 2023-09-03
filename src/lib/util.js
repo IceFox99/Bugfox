@@ -59,6 +59,7 @@ const formatObj = (obj, seen = new WeakSet()) => {
 		const value = obj[key];
 		result[key] = formatObj(value, seen);
 	}
+	seen.delete(obj);
 
 	return result;
 };
