@@ -7,7 +7,6 @@ const { Comparator } = require('./lib/Comparator');
 
 checkConfig(config);
 
-
 (async () => {
 	const translator = new Translator(config);
 	await translator.transProject();

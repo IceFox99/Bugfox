@@ -1,7 +1,10 @@
 "use strict";
 
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 const crypto = require("crypto");
 const fs = require('fs');
+const fsp = fs.promises;
 const path = require('path');
 
 const addFuncPrefix = (str) => {
@@ -70,7 +73,7 @@ const toJSON = (data) => {
 		if (Object.keys(format_obj).length === 0)
 			return JSON.stringify(data.toString());
 		else
-			return `{"-Function-":"${JSON.stringify(data.toString())}","-Attributes-":${JSON.stringify(format_obj)}}`;
+			return JSON.stringify({ "-Function-": data.toString(), "-Attributes-": format_obj });
 	}
 	return JSON.stringify(format_obj);
 }
@@ -122,3 +125,21 @@ const checkConfig = (config) => {
 	}
 }
 module.exports.checkConfig = checkConfig;
+
+const jsonDiff = async (str1, str2) => {
+	const tempPath1 = path.join(process.cwd(), ".Bugfox_temp1");
+	const tempPath2 = path.join(process.cwd(), ".Bugfox_temp2");
+	const tempGen = path.join(process.cwd(), ".Bugfox_diff");
+	await fsp.writeFile(tempPath1, str1+"\n");
+	await fsp.writeFile(tempPath2, str2+"\n");
+	await fsp.writeFile(tempGen, "\n");
+
+	await exec(`diff ${tempPath1} ${tempPath2} -U 3 | tail -n +3 > ${tempGen}`);
+
+	const diffRes = await fsp.readFile(tempGen, 'utf8');
+	await fsp.rm(tempPath1, { force: true });
+	await fsp.rm(tempPath2, { force: true });
+	await fsp.rm(tempGen, { force: true });
+	return diffRes;
+}
+module.exports.jsonDiff = jsonDiff;
