@@ -2,11 +2,11 @@
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
-const { Logger } = require('./util');
-const { FuncStack } = require('./FuncStack');
+const { Logger, jsonDiff } = require('./util');
+const { FuncID, FuncStack } = require('./FuncStack');
 
 class Comparator {
-	constructor(config, result) {
+	constructor(config) {
 		this.config = config;
 		
 		this.projectName = path.basename(this.config.sourceFolder);
@@ -28,9 +28,11 @@ class Comparator {
 		this.candFilePath = path.join(this.traceDiffPath, "candidates.json");
 		this.fullFilePath = path.join(this.traceDiffPath, "full.log");
 
-		this.baseFuncHash = JSON.parse(fs.readFileSync(this.baseTraceFuncPath));
-		this.newFuncHash = JSON.parse(fs.readFileSync(this.newTraceFuncPath));
+		// function body of all functions
+		this.baseFuncTable = JSON.parse(fs.readFileSync(this.baseTraceFuncPath));
+		this.newFuncTable = JSON.parse(fs.readFileSync(this.newTraceFuncPath));
 
+		// two call graphs
 		this.baseFuncStack = JSON.parse(fs.readFileSync(this.baseTraceFile));
 		this.newFuncStack = JSON.parse(fs.readFileSync(this.newTraceFile));
 
@@ -38,28 +40,31 @@ class Comparator {
 		// 0) is code changed
 		// 1) is before information changed (beforeThis, beforeArgs)
 		// 2) is after informationn changed (afterThis, afterArgs, returnVal)
-		// look like { index, isCodeChanged, isBeforeChanged, isAfterChanged }
+		// look like { index, isCodeChanged, isBeforeThisChanged, isBeforeArgsChanged, isAfterThisChanged, isAfterArgsChanged, isRetChanged }
 		this.diffs = []; 
 		this.candidates = [];
 	}
 
 	async logFull() {
 		for (let diff of this.diffs) {
-			await fsp.appendFile(this.fullFilePath, this.getCompStr(diff));
+			await fsp.appendFile(this.fullFilePath, await this.getCompStr(diff));
 			await fsp.appendFile(this.fullFilePath, "\n\n");
 		}
 
 		for (let cand of this.candidates) {
-			await fsp.appendFile(this.fullFilePath, this.getCompStr(cand));
+			await fsp.appendFile(this.fullFilePath, await this.getCompStr(cand));
 			await fsp.appendFile(this.fullFilePath, "\n\n");
 		}
 	}
 
 	// @TBD
 	getAnalysis(diff) {
-		if (diff.isCodeChanged) {
-			if (diff.isBeforeChanged) {
-				if (diff.isAfterChanged) {
+		const isCodeChanged = diff.isCodeChanged;
+		const isBeforeChanged = diff.isBeforeThisChanged || diff.isBeforeArgsChanged;
+		const isAfterChanged = diff.isAfterThisChanged || diff.isAfterArgsChanged || diff.isRetChanged;
+		if (isCodeChanged) {
+			if (isBeforeChanged) {
+				if (isAfterChanged) {
 					// 111
 					return "Most complicated situation, probably caused by the huge refactor of this function, please check all information includes its caller, callee and arguments.\n\n" +
 						"Possible reason:\n" +
@@ -87,7 +92,7 @@ class Comparator {
 				}
 			}
 			else {
-				if (diff.isAfterChanged) {
+				if (isAfterChanged) {
 					// 101
 					return "Probably caused by the update of this function, please check this function's modification and its callee.\n\n" +
 						"Possible reasons:\n" +
@@ -106,8 +111,8 @@ class Comparator {
 			}
 		}
 		else {
-			if (diff.isBeforeChanged) {
-				if (diff.isAfterChanged) {
+			if (isBeforeChanged) {
+				if (isAfterChanged) {
 					// 011
 					return "Probably caused by the different arguments, please check its CALLER \"" + 
 						FuncStack.getFuncStack(this.baseFuncStack, diff.index).caller + 
@@ -137,7 +142,7 @@ class Comparator {
 				}
 			}
 			else {
-				if (diff.isAfterChanged) {
+				if (isAfterChanged) {
 					// 001
 					return "Unknown behavior inside this function, please check its CALLEE.\n\n" + 
 						"Possible reasons:\n" +
@@ -157,35 +162,71 @@ class Comparator {
 		}
 	}
 
-	getCompStr(diff) {
+	async getCompStr(diff) {
 		const baseFS = FuncStack.getFuncStack(this.baseFuncStack, diff.index);
 		const newFS = FuncStack.getFuncStack(this.newFuncStack, diff.index);
-		let str = ("~".repeat(20) + "FUNCTION: " + baseFS.funcName + "~".repeat(20) + "\n");
-		str += ("[ANALYSIS]\n" + this.getAnalysis(diff) + "\n");
-		str += ("\n");
+		const baseID = FuncID.read(baseFS.funcID);
+		const newID = FuncID.read(newFS.funcID);
+		let str = ("~".repeat(20) + "FUNCTION: " + baseID.toStr() + "~".repeat(20) + "\n");
+		if (baseID.toStr() === newID.toStr()) {
+			str += ("[CODE]\n" + this.baseFuncTable[baseID.toStr()] + "\n");
+			str += "\n";
+		}
+		else {
+			str += ("[BASE_CODE]\n" + this.baseFuncTable[baseID.toStr()] + "\n");
+			str += "\n";
+			str += ("[NEW_CODE]\n" + this.newFuncTable[newID.toStr()] + "\n");
+			str += "\n";
+		}
+		
 		str += ("[DETAILS]\n");
 		str += ("index: " + JSON.stringify(diff.index) + "\n");
 		str += ("caller: " + baseFS.caller + "\n");
 		str += ("isCodeChanged: " + diff.isCodeChanged + "\n");
-		str += ("isBeforeChanged: " + diff.isBeforeChanged + "\n");
-		str += ("isAfterChanged: " + diff.isAfterChanged + "\n\n");
-
+		str += ("isBeforeThisChanged: " + diff.isBeforeThisChanged + "\n");
+		str += ("isBeforeArgsChanged: " + diff.isBeforeArgsChanged + "\n");
+		str += ("isAfterThisChanged: " + diff.isAfterThisChanged + "\n");
+		str += ("isAfterArgsChanged: " + diff.isAfterArgsChanged + "\n");
+		str += ("isRetChanged: " + diff.isRetChanged + "\n");
+		str += "\n";
+		str += ("[ANALYSIS]\n" + this.getAnalysis(diff) + "\n");
+		str += "\n";
 		str += ("[COMPARISON]\n");
-		str += ("| BASE->beforeThis: " + baseFS.beforeThis + "\n");
-		str += ("| NEW-->beforeThis: " + newFS.beforeThis + "\n");
-		str += ("|------------------\n");
-		str += ("| BASE->beforeArgs: " + baseFS.beforeArgs + "\n");
-		str += ("| NEW-->beforeArgs: " + newFS.beforeArgs + "\n");
-		str += ("|-----------------\n");
-		str += ("| BASE->afterThis: " + baseFS.afterThis + "\n");
-		str += ("| NEW-->afterThis: " + newFS.afterThis + "\n");
-		str += ("|-----------------\n");
-		str += ("| BASE->afterArgs: " + baseFS.afterArgs + "\n");
-		str += ("| NEW-->afterArgs: " + newFS.afterArgs + "\n");
-		str += ("|-----------------\n");
-		str += ("| BASE->returnVal: " + baseFS.returnVal + "\n");
-		str += ("| NEW-->returnVal: " + newFS.returnVal + "\n");
-		str += ("~".repeat(20) + "FUNCTION: " + baseFS.funcName + "~".repeat(20));
+		str += ("BASE->beforeThis: " + baseFS.beforeThis + "\n");
+		str += ("NEW-->beforeThis: " + newFS.beforeThis + "\n");
+		if (diff.isBeforeThisChanged)
+			str += ("DIFF:\n" + await jsonDiff(JSON.stringify(JSON.parse(baseFS.beforeThis), null, 2), 
+				JSON.stringify(JSON.parse(newFS.beforeThis), null, 2)));
+		str += ("----------------------------------\n");
+
+		str += ("BASE->beforeArgs: " + baseFS.beforeArgs + "\n");
+		str += ("NEW-->beforeArgs: " + newFS.beforeArgs + "\n");
+		if (diff.isBeforeArgsChanged)
+			str += ("DIFF:\n" + await jsonDiff(JSON.stringify(JSON.parse(baseFS.beforeArgs), null, 2), 
+				JSON.stringify(JSON.parse(newFS.beforeArgs), null, 2)));
+		str += ("----------------------------------\n");
+
+		str += ("BASE->afterThis: " + baseFS.afterThis + "\n");
+		str += ("NEW-->afterThis: " + newFS.afterThis + "\n");
+		if (diff.isAfterThisChanged)
+			str += ("DIFF:\n" + await jsonDiff(JSON.stringify(JSON.parse(baseFS.afterThis), null, 2), 
+				JSON.stringify(JSON.parse(newFS.afterThis), null, 2)));
+		str += ("----------------------------------\n");
+
+		str += ("BASE->afterArgs: " + baseFS.afterArgs + "\n");
+		str += ("NEW-->afterArgs: " + newFS.afterArgs + "\n");
+		if (diff.isAfterArgsChanged)
+			str += ("DIFF:\n" + await jsonDiff(JSON.stringify(JSON.parse(baseFS.afterArgs), null, 2), 
+				JSON.stringify(JSON.parse(newFS.afterArgs), null, 2)));
+		str += ("----------------------------------\n");
+
+		str += ("BASE->returnVal: " + baseFS.returnVal + "\n");
+		str += ("NEW-->returnVal: " + newFS.returnVal + "\n");
+		if (diff.isRetChanged)
+			str += ("DIFF:\n" + await jsonDiff(JSON.stringify(JSON.parse(baseFS.returnVal), null, 2), 
+				JSON.stringify(JSON.parse(newFS.returnVal), null, 2)));
+
+		str += ("~".repeat(20) + "FUNCTION: " + baseID.toStr() + "~".repeat(20));
 		return str;
 	}
 
@@ -250,8 +291,8 @@ class Comparator {
 		}
 
 		for (const deepDiff of this.getFirstDeepestIndexs(this.diffs)) {
-			this.logger.log("[TEST " + deepDiff.index[0] + "] " + FuncStack.getFuncStack(this.baseFuncStack, [deepDiff.index[0]]).funcName, "");
-			this.logger.log(this.getCompStr(deepDiff), "");
+			this.logger.log("[TEST " + deepDiff.index[0] + "] " + FuncID.read(FuncStack.getFuncStack(this.baseFuncStack, [deepDiff.index[0]]).funcID).toStr(), "");
+			this.logger.log(await this.getCompStr(deepDiff), "");
 			this.logger.log("\n", "");
 		}
 	}
@@ -261,16 +302,21 @@ class Comparator {
 		const newFS = FuncStack.getFuncStack(this.newFuncStack, index);
 
 		// is the code being updated among these commits
-		const isCodeChanged = (this.baseFuncHash[baseFS.funcName] !== this.newFuncHash[newFS.funcName]);
+		const isCodeChanged = (baseFS.funcID.hash !== newFS.funcID.hash);
 
 		// is the information before the function call changed (beforeThis + beforeArgs)
-		const isBeforeChanged = (baseFS.beforeThis !== newFS.beforeThis) || (baseFS.beforeArgs !== newFS.beforeArgs);
+		const isBeforeThisChanged = (baseFS.beforeThis !== newFS.beforeThis);
+		const isBeforeArgsChanged = (baseFS.beforeArgs !== newFS.beforeArgs);
 
 		// is the information after the function call changed (afterThis + afterArgs + returnVal)
-		const isAfterChanged = (baseFS.afterThis !== newFS.afterThis) || (baseFS.afterArgs !== newFS.afterArgs) || (baseFS.returnVal !== newFS.returnVal);
+		const isAfterThisChanged = (baseFS.afterThis !== newFS.afterThis);
+		const isAfterArgsChanged = (baseFS.afterArgs !== newFS.afterArgs);
+		const isRetChanged = (baseFS.returnVal !== newFS.returnVal);
 
-		const diff = { index, isCodeChanged, isBeforeChanged, isAfterChanged };
+		const diff = { index, isCodeChanged, isBeforeThisChanged, isBeforeArgsChanged, isAfterThisChanged, isAfterArgsChanged, isRetChanged };
 		
+		const isBeforeChanged = isBeforeThisChanged || isBeforeArgsChanged;
+		const isAfterChanged = isAfterThisChanged || isAfterArgsChanged || isRetChanged;
 		if (isCodeChanged) {
 			if (isBeforeChanged) {
 				if (isAfterChanged) {
@@ -292,7 +338,7 @@ class Comparator {
 					for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i) {
 						const baseChild = FuncStack.getFuncStack(this.baseFuncStack, [...index, i]);
 						const newChild = FuncStack.getFuncStack(this.newFuncStack, [...index, i]);
-						if (baseChild.funcName !== newChild.funcName)
+						if (!FuncID.compFuncID(baseChild.funcID, newChild.funcID))
 							return;
 
 						await this.compFuncStack([...index, i]);
@@ -330,7 +376,7 @@ class Comparator {
 					for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i) {
 						const baseChild = FuncStack.getFuncStack(this.baseFuncStack, [...index, i]);
 						const newChild = FuncStack.getFuncStack(this.newFuncStack, [...index, i]);
-						if (baseChild.funcName !== newChild.funcName)
+						if (!FuncID.compFuncID(baseChild.funcID, newChild.funcID))
 							return;
 
 						await this.compFuncStack([...index, i]);
@@ -352,8 +398,8 @@ class Comparator {
 		for (let i = 0; i < this.baseFuncStack.callee.length; ++i) {
 			const baseFS = FuncStack.getFuncStack(this.baseFuncStack, [i]);
 			const newFS = FuncStack.getFuncStack(this.newFuncStack, [i]);
-			if (baseFS.funcName !== newFS.funcName) {
-				this.logger.log("[DEPTH 1] Can't compare function " + baseFS.funcName + " and " + newFS.funcName + ", stop comparing remaining call graph.");
+			if (!FuncID.compFuncID(baseFS.funcID, newFS.funcID)) {
+				this.logger.log("[DEPTH 1] Can't compare function " + FuncID.read(baseFS.funcID).toStr()+ " and " + FuncID.read(newFS.funcID).toStr() + ", stop comparing remaining call graph.");
 				break;
 			}
 

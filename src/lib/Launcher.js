@@ -34,6 +34,7 @@ class Launcher {
 		this.logger.log("copy base project to running enviroment");
 		await fsp.rm(this.runProjectPath, { recursive: true, force: true });
 		await fse.copy(this.baseProjectPath, this.runProjectPath);
+		const cwd = process.cwd();
 
 		this.logger.log("change process path to " + this.runProjectPath);
 		process.chdir(this.runProjectPath);
@@ -107,6 +108,7 @@ class Launcher {
 			]);
 		}
 		
+		process.chdir(cwd);
 		await fsp.rm(this.runProjectPath, { recursive: true, force: true });
 		this.logger.logL("FINISH PROJECTS");
 	}

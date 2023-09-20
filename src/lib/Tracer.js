@@ -1,6 +1,6 @@
 "use strict";
 
-const { FuncStack } = require('./FuncStack');
+const { FuncID, FuncStack } = require('./FuncStack');
 const fs = require('fs');
 const path = require('path');
 
@@ -14,8 +14,9 @@ class Tracer {
 		this.isBase = isBase;
 	}
 
-	static buildFuncStack(funcName) {
-		return new FuncStack(funcName);
+	static buildFuncStack(filePath, funcPath, hash) {
+		const funcID = new FuncID(filePath, funcPath, hash);
+		return new FuncStack(funcID);
 	}
 
 	push(funcStack) {
