@@ -35,6 +35,7 @@ $ npm install
 
 - [Git](https://git-scm.com)
 - [Node.js](https://nodejs.org)
+- [Diffutils](https://www.gnu.org/software/diffutils/)
 - [acorn@8.8.2](https://github.com/acornjs/acorn)
 - [ast-types@0.14.2](https://github.com/benjamn/ast-types)
 - [astring@1.8.6](https://github.com/davidbonnet/astring)
@@ -141,10 +142,25 @@ You will obtain analysis results like the following:
 
 ```
 ...
-[TEST 9] src/test_math.js#Func@test_average
-~~~~~~~~~~~~~~~~~~~~FUNCTION: src/math.js#Func@add~~~~~~~~~~~~~~~~~~~~
+[TEST 0] src/test_math.js#Func@test_average,c51496518ff0305cf877cd2033d037fd2dd4943088e268649eef61584f507f90
+~~~~~~~~~~~~~~~~~~~~FUNCTION: src/math.js#Func@add,650970d8fd9b25f9a90378c26fd3aba7dd3c73b098523469291be838880cd3e5~~~~~~~~~~~~~~~~~~~~
+[CODE]
+function add(a, b) {
+  return a + b;
+}
+
+[DETAILS]
+index: [0,2,0,0]
+caller: src/math.js#FuncVar@sum,af0dce960751dd36473d6a4d5300193966952c7d7b3388254c19a78263bf8db1
+isCodeChanged: false
+isBeforeThisChanged: false
+isBeforeArgsChanged: true
+isAfterThisChanged: false
+isAfterArgsChanged: true
+isRetChanged: true
+
 [ANALYSIS]
-Probably caused by the different arguments, please check its CALLER "src/math.js#FuncVar@sum" and the different arguments that passed to this function.
+Probably caused by the different arguments, please check its CALLER "src/math.js#FuncVar@sum,af0dce960751dd36473d6a4d5300193966952c7d7b3388254c19a78263bf8db1" and the different arguments that passed to this function.
 
 Possible reasons:
 0) this function received unexpected arguments (highest probability)
@@ -156,29 +172,40 @@ Possible solutions:
 2) refactor this function to make it compatible with its caller
 3) check its callee's contents and whether the callee have been refactored
 
-[DETAILS]
-index: [9,2,0,0]
-caller: src/math.js#FuncVar@sum
-isCodeChanged: false
-isBeforeChanged: true
-isAfterChanged: true
-
 [COMPARISON]
-| BASE->beforeThis: null
-| NEW-->beforeThis: null
-|------------------
-| BASE->beforeArgs: [0,1.5]
-| NEW-->beforeArgs: [1.5,1.5]
-|-----------------
-| BASE->afterThis: null
-| NEW-->afterThis: null
-|-----------------
-| BASE->afterArgs: [0,1.5]
-| NEW-->afterArgs: [1.5,1.5]
-|-----------------
-| BASE->returnVal: 1.5
-| NEW-->returnVal: 3
-~~~~~~~~~~~~~~~~~~~~FUNCTION: src/math.js#Func@add~~~~~~~~~~~~~~~~~~~~
+BASE->beforeThis: null
+NEW-->beforeThis: null
+----------------------------------
+BASE->beforeArgs: [0,1.5]
+NEW-->beforeArgs: [1.5,1.5]
+DIFF:
+@@ -1,4 +1,4 @@
+ [
+-  0,
++  1.5,
+   1.5
+ ]
+----------------------------------
+BASE->afterThis: null
+NEW-->afterThis: null
+----------------------------------
+BASE->afterArgs: [0,1.5]
+NEW-->afterArgs: [1.5,1.5]
+DIFF:
+@@ -1,4 +1,4 @@
+ [
+-  0,
++  1.5,
+   1.5
+ ]
+----------------------------------
+BASE->returnVal: 1.5
+NEW-->returnVal: 3
+DIFF:
+@@ -1 +1 @@
+-1.5
++3
+~~~~~~~~~~~~~~~~~~~~FUNCTION: src/math.js#Func@add,650970d8fd9b25f9a90378c26fd3aba7dd3c73b098523469291be838880cd3e5~~~~~~~~~~~~~~~~~~~~
 ...
 ```
 
