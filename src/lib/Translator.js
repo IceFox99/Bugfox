@@ -197,16 +197,7 @@ class Translator {
 			this.currentFuncPath.push("Class@" + node.id.name);
 		}
 		else if (node.type === "FunctionExpression") {
-			if (node.id !== null) {
-				this.currentFuncPath.push("Func@" + node.id.name);
-				let funcBody = generate(node);
-				funcTable[this.getFullFuncName(relativeFilePath, this.currentFuncPath) + "," + hash(funcBody)] = funcBody;
-				if (funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] !== undefined)
-					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)].hashs.push(hash(funcBody));
-				else
-					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
-			}
-			else if (parent.type === "VariableDeclarator") {
+			if (parent.type === "VariableDeclarator") {
 				this.currentFuncPath.push("FuncVar@" + parent.id.name);
 				let funcBody = generate(node);
 				funcTable[this.getFullFuncName(relativeFilePath, this.currentFuncPath) + "," + hash(funcBody)] = funcBody;
@@ -224,7 +215,25 @@ class Translator {
 				else
 					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
 			}
-			else {
+			else if (parent.type === "MethodDefinition") {
+				this.currentFuncPath.push("Method@" + parent.key.name);
+				let funcBody = generate(node);
+				funcTable[this.getFullFuncName(relativeFilePath, this.currentFuncPath) + "," + hash(funcBody)] = funcBody;
+				if (funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] !== undefined)
+					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)].hashs.push(hash(funcBody));
+				else
+					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
+			}
+			else if (node.id !== null) {
+				this.currentFuncPath.push("Func@" + node.id.name);
+				let funcBody = generate(node);
+				funcTable[this.getFullFuncName(relativeFilePath, this.currentFuncPath) + "," + hash(funcBody)] = funcBody;
+				if (funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] !== undefined)
+					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)].hashs.push(hash(funcBody));
+				else
+					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
+			}
+			else if (node.id === null){
 				// Anonymous function
 				// hash and its function body text
 				let funcBody = generate(node);
@@ -255,7 +264,16 @@ class Translator {
 				else
 					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
 			}
-			else {
+			else if (parent.type === "PropertyDefinition") {
+				this.currentFuncPath.push("ArrowMethod@" + parent.key.name);
+				let funcBody = generate(node);
+				funcTable[this.getFullFuncName(relativeFilePath, this.currentFuncPath) + "," + hash(funcBody)] = funcBody;
+				if (funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] !== undefined)
+					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)].hashs.push(hash(funcBody));
+				else
+					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
+			}
+			else if (node.id === null) {
 				// Anonymous function
 				// hash and its function body text
 				let funcBody = generate(node);
@@ -267,15 +285,15 @@ class Translator {
 					funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
 			}
 		}
-		else if (node.type === "MethodDefinition") {
-			this.currentFuncPath.push("Method@" + node.key.name);
-			let funcBody = generate(node);
-			funcTable[this.getFullFuncName(relativeFilePath, this.currentFuncPath) + "," + hash(funcBody)] = funcBody;
-			if (funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] !== undefined)
-				funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)].hashs.push(hash(funcBody));
-			else
-				funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
-		}
+		//else if (node.type === "MethodDefinition") {
+		//	this.currentFuncPath.push("Method@" + node.key.name);
+		//	let funcBody = generate(node);
+		//	funcTable[this.getFullFuncName(relativeFilePath, this.currentFuncPath) + "," + hash(funcBody)] = funcBody;
+		//	if (funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] !== undefined)
+		//		funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)].hashs.push(hash(funcBody));
+		//	else
+		//		funcHashs[this.getFullFuncName(relativeFilePath, this.currentFuncPath)] = { hashs: [ hash(funcBody) ], count: 0 };
+		//}
 	}
 
 	getFuncHash(funcHashs, relativeFilePath, currentFuncPath) {
@@ -318,22 +336,7 @@ class Translator {
 			this.currentFuncPath.pop();
 		}
 		else if (node.type === "FunctionExpression") {
-			if (node.id !== null) {
-				this.logger.log("translating " + this.getFullFuncName(relativeFilePath, this.currentFuncPath));
-				let innerFunc = JSON.parse(JSON.stringify(node));
-
-				innerFunc.type = "FunctionDeclaration";
-				innerFunc.id.name = addFuncPrefix(node.id.name);
-
-				node.body = this.getSingleAST("{}");
-				node.body.body.push(innerFunc);
-
-				this.buildBlockStat(node.body, relativeFilePath, this.currentFuncPath, 
-					this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath), innerFunc.id.name);
-
-				this.currentFuncPath.pop();
-			}
-			else if (parent.type === "VariableDeclarator") {
+			if (parent.type === "VariableDeclarator") {
 				this.logger.log("translating " + this.getFullFuncName(relativeFilePath, this.currentFuncPath));
 				let innerFunc = JSON.parse(JSON.stringify(node));
 
@@ -364,11 +367,59 @@ class Translator {
 
 				this.currentFuncPath.pop();
 			}
-			else {
+			else if (parent.type === "MethodDefinition") {
+				this.logger.log("translating " + this.getFullFuncName(relativeFilePath, this.currentFuncPath));
+				if (parent.kind === "constructor") {
+					let index = 0;
+					node.body.body.splice(index++, 0, this.getSingleAST(`let funcStack = _Tracer_.buildFuncStack("${relativeFilePath}", ${JSON.stringify(this.currentFuncPath)}, "${this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath)}");`));
+		
+					// add the setBeforeStats
+					node.body.body.splice(index++, 0, this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcID, null, [...arguments]);"));
+		
+					// add the push and move
+					node.body.body.splice(index++, 0, this.getSingleAST("global.BugfoxTracer.push(funcStack);"));
+					node.body.body.splice(index++, 0, this.getSingleAST("global.BugfoxTracer.move(funcStack);"));
+		
+					// add the setAfterStats
+					node.body.body.push(this.getSingleAST("let tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
+					node.body.body.push(this.getSingleAST("funcStack.setAfterStats(null, tempThis, [...arguments]);"));
+		
+					// add the moveTop
+					node.body.body.push(this.getSingleAST("global.BugfoxTracer.moveTop();"));
+				}
+				else if (parent.kind === "method") {
+					let copyMeth = JSON.parse(JSON.stringify(parent));
+					parent.key.name = addFuncPrefix(parent.key.name);
+					
+					copyMeth.value.body = this.getSingleAST("{}");
+					
+					this.buildBlockStat(copyMeth.value.body, relativeFilePath, this.currentFuncPath, 
+						this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath), "this." + parent.key.name);
+					
+					this.insertedMethod.push(copyMeth);
+				}
+		
+				this.currentFuncPath.pop();
+			}
+			else if (node.id !== null) {
+				this.logger.log("translating " + this.getFullFuncName(relativeFilePath, this.currentFuncPath));
+				let innerFunc = JSON.parse(JSON.stringify(node));
+
+				innerFunc.type = "FunctionDeclaration";
+				innerFunc.id.name = addFuncPrefix(node.id.name);
+
+				node.body = this.getSingleAST("{}");
+				node.body.body.push(innerFunc);
+
+				this.buildBlockStat(node.body, relativeFilePath, this.currentFuncPath, 
+					this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath), innerFunc.id.name);
+
+				this.currentFuncPath.pop();
+			}
+			else if (node.id === null) {
 				// Anonymous
 				this.logger.log("translating " + this.getFullFuncName(relativeFilePath, this.currentFuncPath));
 				let innerFunc = JSON.parse(JSON.stringify(node));
-				//let anonHash = hash(generate(node));
 				let anonHash = this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath)
 
 				innerFunc.type = "FunctionDeclaration";
@@ -390,7 +441,6 @@ class Translator {
 				let innerDecl = this.getSingleAST("const a = 0;");
 				innerDecl.declarations[0].id.name = addFuncPrefix(parent.id.name);
 
-				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
 				node.params = [ this.getRestElem() ];
 				node.body = this.getSingleAST("{}");
@@ -407,7 +457,6 @@ class Translator {
 				let innerDecl = this.getSingleAST("const a = 0;");
 				innerDecl.declarations[0].id.name = "Bugfox_INNERFUNC";
 
-				//innerDecl.declarations[0].init = parent.init;
 				innerDecl.declarations[0].init = JSON.parse(JSON.stringify(node));
 				node.params = [ this.getRestElem() ];
 				node.body = this.getSingleAST("{}");
@@ -418,11 +467,22 @@ class Translator {
 
 				this.currentFuncPath.pop();
 			}
-			else {
+			else if (parent.type === "PropertyDefinition") {
+				this.logger.log("translating " + this.getFullFuncName(relativeFilePath, this.currentFuncPath));
+				let copyMeth = JSON.parse(JSON.stringify(parent));
+				parent.key.name = addFuncPrefix(parent.key.name);
+
+				copyMeth.value.body = this.getSingleAST("{}");
+				this.buildBlockStat(copyMeth.value.body, relativeFilePath, this.currentFuncPath, 
+					this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath), "this." + parent.key.name, true);
+
+				this.insertedMethod.push(copyMeth);
+				this.currentFuncPath.pop();
+			}
+			else if (node.id === null) {
 				// Anonymous
 				this.logger.log("translating " + this.getFullFuncName(relativeFilePath, this.currentFuncPath));
 
-				//let anonHash = hash(generate(node));
 				let anonHash = this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath)
 				let innerDecl = this.getSingleAST("const a = 0;");
 				innerDecl.declarations[0].id.name = addFuncPrefix(anonHash);
@@ -436,42 +496,6 @@ class Translator {
 
 				this.currentFuncPath.pop();
 			}
-		}
-		else if (node.type === "MethodDefinition") {
-			this.logger.log("translating " + this.getFullFuncName(relativeFilePath, this.currentFuncPath));
-
-			if (node.kind === "constructor") {
-				let index = 0;
-				node.value.body.body.splice(index++, 0, this.getSingleAST(`let funcStack = _Tracer_.buildFuncStack("${relativeFilePath}", ${JSON.stringify(this.currentFuncPath)}, ${this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath)});`));
-
-				// add the setBeforeStats
-				node.value.body.body.splice(index++, 0, this.getSingleAST("funcStack.setBeforeStats(global.BugfoxTracer.currentFuncStack.funcID, null, [...arguments]);"));
-
-				// add the push and move
-				node.value.body.body.splice(index++, 0, this.getSingleAST("global.BugfoxTracer.push(funcStack);"));
-				node.value.body.body.splice(index++, 0, this.getSingleAST("global.BugfoxTracer.move(funcStack);"));
-
-				// add the setAfterStats
-				node.value.body.body.push(this.getSingleAST("let tempThis = (((this === global) || (this === undefined) || (this === module.exports)) ? null : this);"));
-				node.value.body.body.push(this.getSingleAST("funcStack.setAfterStats(null, tempThis, [...arguments]);"));
-
-				// add the moveTop
-				node.value.body.body.push(this.getSingleAST("global.BugfoxTracer.moveTop();"));
-			}
-			else if (node.kind === "method") {
-				//let copyMeth = this.getSingleAST(generate(node));
-				let copyMeth = JSON.parse(JSON.stringify(node));
-				node.key.name = addFuncPrefix(node.key.name);
-				
-				copyMeth.value.body = this.getSingleAST("{}");
-				
-				this.buildBlockStat(copyMeth.value.body, relativeFilePath, this.currentFuncPath, 
-					this.getFuncHash(funcHashs, relativeFilePath, this.currentFuncPath), "this." + node.key.name);
-				
-				this.insertedMethod.push(copyMeth);
-			}
-
-			this.currentFuncPath.pop();
 		}
 	}
 
