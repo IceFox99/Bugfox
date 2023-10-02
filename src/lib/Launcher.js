@@ -95,12 +95,12 @@ class Launcher {
 
 			newProject.stdout.on('data', ((data) => {
 				process.stdout.write(data);
-				this.logger.append(data, "", "");
+				this.logger.append(removeEscapeCode(data), "", "");
 			}).bind(this));
 
 			newProject.stderr.on('data', ((data) => {
 				process.stderr.write(data);
-				this.logger.append(data, "", "");
+				this.logger.append(removeEscapeCode(data), "", "");
 			}).bind(this));
 
 			await Promise.all([

@@ -13,7 +13,7 @@ const addFuncPrefix = (str) => {
 module.exports.addFuncPrefix = addFuncPrefix;
 
 const removeEscapeCode = (string) => {
-    return string.replace(/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]/g, '')
+    return string.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
 		.replace(/\r/g, '');
 };
 module.exports.removeEscapeCode = removeEscapeCode;
