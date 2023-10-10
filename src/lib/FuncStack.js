@@ -41,12 +41,12 @@ class FuncStack {
 	constructor(funcID) {
 		this.funcID = funcID; // class of FuncID or "ENTRY_POINT"
 		this.index = []; // index of the whole function stacks, first element stands for whether it's in base FuncStacks
-		this.caller = undefined; // string: caller's funcID
-		this.beforeThis = undefined; // reference
-		this.beforeArgs = undefined; // json format
-		this.afterThis = undefined; // reference
-		this.afterArgs = undefined; // json format
-		this.returnVal = undefined; // json format
+		this.caller = '"-undefined-"'; // string: caller's funcID
+		this.beforeThis = '"-undefined-"'; // reference
+		this.beforeArgs = '"-undefined-"'; // json format
+		this.afterThis = '"-undefined-"'; // reference
+		this.afterArgs = '"-undefined-"'; // json format
+		this.returnVal = '"-undefined-"'; // json format
 		this.callee = []; // array of FuncStack
 	}
 
