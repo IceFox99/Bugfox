@@ -101,7 +101,7 @@ Now go to the Bugfox folder and run:
 ```shell
 $ cd path/to/your/Bugfox
 $ cd src
-$ node Bugfox.js Bugfox-config.json
+$ node Bugfox.js ../experiments/Bugfox-example/Bugfox-config.json
 ```
 
 Check the standard output and the `generateFolder` that you specify, the file structure inside that folder will looks like:

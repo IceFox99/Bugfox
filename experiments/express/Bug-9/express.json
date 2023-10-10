@@ -1,0 +1,20 @@
+{
+	"sourceFolder": "/home/icefox99/BugJS/express",
+	"generateFolder": "/home/icefox99/BugJS/express-result",
+	"baseIgnoreFolder": [
+		"node_modules"
+	],
+	"newIgnoreFolder": [
+		"node_modules"
+	],
+	"baseCommitID": "c1293d709273cafee422acc1150988efcaa91cf5",
+	"newCommitID": "96bc55b161f0098b16502e116bfa3a9dfb6bdaab",
+	"baseCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/app.js"
+	],
+	"newCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/app.js"
+	]
+}

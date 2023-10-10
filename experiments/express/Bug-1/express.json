@@ -1,0 +1,23 @@
+{
+	"sourceFolder": "/home/icefox99/BugJS/express",
+	"generateFolder": "/home/icefox99/BugJS/express-result",
+	"baseIgnoreFolder": [
+		"node_modules"
+	],
+	"newIgnoreFolder": [
+		"node_modules"
+	],
+	"baseCommitID": "4c5ecf378373d9795c66af6d9dbd1ab1665fdeb7",
+	"newCommitID": "ec59da72a6efc589c5d22858e421230b199f7625",
+	"baseCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/app.options.js"
+	],
+	"newCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/app.options.js"
+	],
+	"testEntries": [
+		"test/app.options.js#AnonFunc@e7c2853751c8f9f89187d35b5b380192b0051b05ef6e1c8f87cd02af77b714b5/AnonFunc@d7809f683d9647db5acbfc99cf16620b5635ef5ecd7db192b52cbd7cc5003129,d7809f683d9647db5acbfc99cf16620b5635ef5ecd7db192b52cbd7cc5003129"
+	]
+}
