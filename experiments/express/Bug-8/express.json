@@ -1,6 +1,6 @@
 {
-	"sourceFolder": "/home/icefox99/BugJS/express",
-	"generateFolder": "/home/icefox99/BugJS/express-result",
+	"sourceFolder": "BugJS/express",
+	"generateFolder": "BugJS/express-result/Bug-8",
 	"baseIgnoreFolder": [
 		"node_modules"
 	],

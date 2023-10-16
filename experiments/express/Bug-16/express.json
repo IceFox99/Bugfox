@@ -1,0 +1,23 @@
+{
+	"sourceFolder": "BugJS/express",
+	"generateFolder": "BugJS/express-result/Bug-16",
+	"baseIgnoreFolder": [
+		"node_modules"
+	],
+	"newIgnoreFolder": [
+		"node_modules"
+	],
+	"baseCommitID": "5eecdbd1a4e87acfe0226f165a9fa01645236c78",
+	"newCommitID": "fba89d35014ee9a3b6749eef2618cbd5433d86e6",
+	"baseCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/res.redirect.js"
+	],
+	"newCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/res.redirect.js"
+	],
+	"testEntries": [
+		"test/res.redirect.js#AnonFunc@4a6a13ecbc6dc5fbb3bcd63ac388e0185bcebed1fd6db329a8dfaab3d5bbdc87/AnonFunc@44dad6822a5cfeede9d0e71190d1c56bd14f4588664334608c5d18361ab8677d/AnonFunc@5bb7f9ae164a11409d4c4a6ec7588196fc55b01d9036926448f00a8a7630928f,5bb7f9ae164a11409d4c4a6ec7588196fc55b01d9036926448f00a8a7630928f"
+	]
+}

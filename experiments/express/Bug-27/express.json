@@ -1,0 +1,25 @@
+{
+	"sourceFolder": "BugJS/express",
+	"generateFolder": "BugJS/express-result/Bug-27",
+	"baseIgnoreFolder": [
+		"node_modules",
+		"examples/cookie-sessions/index.js"
+	],
+	"newIgnoreFolder": [
+		"node_modules",
+		"examples/cookie-sessions/index.js"
+	],
+	"baseCommitID": "7855408f2496b04ffb7f5d43e6ad9291259c987e",
+	"newCommitID": "6cdb9b26ac70eeffbd69fed16d09af5d11e4116f",
+	"baseCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/app.param.js"
+	],
+	"newCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/app.param.js"
+	],
+	"testEntries": [
+		"test/app.param.js#AnonFunc@f1dc27137964835ea8a78b74d916082787954b21832414f4c394cc492b02a726/AnonFunc@18393e7714825cdafef100c7a6fc473dc7358a874e6dabae6702bc9b7f9ec981/AnonFunc@4239e691451a7da7ab232e0e42e0115373e22718c3e2322cd1c80962684bbdd1,4239e691451a7da7ab232e0e42e0115373e22718c3e2322cd1c80962684bbdd1"
+	]
+}
