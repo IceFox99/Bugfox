@@ -1,6 +1,7 @@
 "use strict";
 const { execSync } = require('child_process');
 const path = require('path');
+const os = require('os');
 const fs = require('fs');
 const fsp = fs.promises;
 const fse = require('fs-extra');
@@ -23,11 +24,11 @@ class Translator {
 		
 		this.projectName = path.basename(this.config.sourceFolder);
 
-		this.rootProjectPath = path.join(this.config.generateFolder, "project");
+		this.rootProjectPath = path.join(os.homedir(), this.config.generateFolder, "project");
 		this.baseProjectPath = path.join(this.rootProjectPath, this.projectName + "_base");
 		this.newProjectPath = path.join(this.rootProjectPath, this.projectName + "_new");
 
-		this.rootTracePath = path.join(this.config.generateFolder, "trace");
+		this.rootTracePath = path.join(os.homedir(), this.config.generateFolder, "trace");
 		this.baseTracePath = path.join(this.rootTracePath, this.projectName + "_base");
 		this.newTracePath = path.join(this.rootTracePath, this.projectName + "_new");
 
@@ -58,13 +59,13 @@ class Translator {
 		let initialLog = "\n----------Bugfox: START SETTING UP PROJECTS----------\n\n";
 		console.log("\n----------Bugfox: START SETTING UP PROJECTS----------\n");
 
-		initialLog += ("Bugfox: clean folder " + this.config.generateFolder + "\n");
-		console.log("Bugfox: clean folder " + this.config.generateFolder);
-		await fsp.rm(this.config.generateFolder, { recursive: true, force: true });
+		initialLog += ("Bugfox: clean folder " + path.join(os.homedir(), this.config.generateFolder) + "\n");
+		console.log("Bugfox: clean folder " + path.join(os.homedir(), this.config.generateFolder));
+		await fsp.rm(path.join(os.homedir(), this.config.generateFolder), { recursive: true, force: true });
 
-		initialLog += ("Bugfox: create folder " + this.config.generateFolder + "\n");
-		console.log("Bugfox: create folder " + this.config.generateFolder);
-		await fsp.mkdir(this.config.generateFolder, { recursive: true });
+		initialLog += ("Bugfox: create folder " + path.join(os.homedir(), this.config.generateFolder) + "\n");
+		console.log("Bugfox: create folder " + path.join(os.homedir(), this.config.generateFolder));
+		await fsp.mkdir(path.join(os.homedir(), this.config.generateFolder), { recursive: true });
 
 		// copy source code
 		initialLog += ("Bugfox: create folder " + this.rootProjectPath + "\n");
@@ -90,11 +91,11 @@ class Translator {
 		// After the initialization of directories, the logger could be used
 		this.logger.append(initialLog);
 
-		this.logger.log("copy folder " + this.config.sourceFolder + " to " + this.baseProjectPath);
-		await fse.copy(this.config.sourceFolder, this.baseProjectPath);
+		this.logger.log("copy folder " + path.join(os.homedir(), this.config.sourceFolder) + " to " + this.baseProjectPath);
+		await fse.copy(path.join(os.homedir(), this.config.sourceFolder), this.baseProjectPath);
 
-		this.logger.log("copy folder " + this.config.sourceFolder + " to " + this.newProjectPath);
-		await fse.copy(this.config.sourceFolder, this.newProjectPath);
+		this.logger.log("copy folder " + path.join(os.homedir(), this.config.sourceFolder) + " to " + this.newProjectPath);
+		await fse.copy(path.join(os.homedir(), this.config.sourceFolder), this.newProjectPath);
 
 		const currentDir = process.cwd();
 

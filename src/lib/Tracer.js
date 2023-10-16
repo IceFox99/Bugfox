@@ -1,6 +1,7 @@
 "use strict";
 
 const { FuncID, FuncStack } = require('./FuncStack');
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 
@@ -38,7 +39,7 @@ class Tracer {
 	writeFuncStacks() {
 		const callGraph = JSON.stringify(global.BugfoxTracer.baseFuncStack, null, 2);
 		const projectName = path.basename(this.config.sourceFolder) + "_" + ((this.isBase) ? "base" : "new");
-		const fsPath = path.join(this.config.generateFolder, "trace", projectName, projectName + ".json");
+		const fsPath = path.join(os.homedir(), this.config.generateFolder, "trace", projectName, projectName + ".json");
 		fs.writeFileSync(fsPath, callGraph);
 	}
 }

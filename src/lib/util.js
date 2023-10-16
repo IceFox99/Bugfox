@@ -111,17 +111,17 @@ const checkConfig = (config) => {
 	if (!Array.isArray(config.baseCommand) || !Array.isArray(config.newCommand))
 		throw new Error("Command must be an array");
 
-	if (!path.isAbsolute(config.sourceFolder) || !path.isAbsolute(config.generateFolder))
-		throw new Error("Project folder must be absolute path.");
+	if (path.isAbsolute(config.sourceFolder) || path.isAbsolute(config.generateFolder))
+		throw new Error("Project folder must be relative path to home directory");
 	if (!Array.isArray(config.baseIgnoreFolder) || !Array.isArray(config.newIgnoreFolder))
 		throw new Error("Ignore folder must be an array");
 	for (const bif of config.baseIgnoreFolder) {
 		if (path.isAbsolute(bif))
-			throw new Error("Base ignore folder must be relative path");
+			throw new Error("Base ignore folder must be relative path to project directory");
 	}
 	for (const nif of config.newIgnoreFolder) {
 		if (path.isAbsolute(nif))
-			throw new Error("New ignore folder must be relative path");
+			throw new Error("New ignore folder must be relative path to project directory");
 	}
 }
 module.exports.checkConfig = checkConfig;

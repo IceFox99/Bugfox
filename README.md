@@ -73,15 +73,25 @@ After running the `test_math.js`, you can see the unexpected fails in the test r
 - commands to run the test module
 
 Below is the prewritten configuration JSON file, which can be found in [src/Bugfox-config.json](src/Bugfox-config.json). 
-Please modify the `sourceFolder` value to the path of your `Bugfox-example`, and change the `generateFolder` value to the location where all generated files, including translated source code and trace information, will be stored. ***Be aware that this tool will clean the `generateFolder` first if it exists, so please make sure you use a nonexistent or empty folder!!***
+Please modify the `sourceFolder` value to the path of your `Bugfox-example`, and change the `generateFolder` value to the location where all generated files, including translated source code and trace information, will be stored. 
+
+#### Path format:
+- `sourceFolder`: the location of your project (relative path to ***home directory***)
+- `generateFolder`: the root location of all generated files (relative path to ***home directory***)
+- `baseIgnoreFolder`: folders which you want to be ignored for translating in your project's base commit (relative path to ***project path***)
+- `newIgnoreFolder`: folders which you want to be ignored for translating in your project's new commit (relative path to ***project path***)
+
+<u>***Be aware that this tool will clean the `generateFolder` first if it exists, so please make sure you use a nonexistent or empty folder!!***</u>
 
 ```json
 {
-	"sourceFolder": "/home/icefox99/Bugfox-example", 
-	"generateFolder": "/home/icefox99/BugfoxResult",
+	"sourceFolder": "Bugfox-example",
+	"generateFolder": "Bugfox-result",
 	"baseIgnoreFolder": [
+		"node_modules"
 	],
 	"newIgnoreFolder": [
+		"node_modules"
 	],
 	"baseCommitID": "c6b49b85aa7532cf849b6bd534be6528860c45c2",
 	"newCommitID": "60027f81a696fcf6637b13a7d03693d71c83684f",

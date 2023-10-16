@@ -1,4 +1,5 @@
 "use strict";
+const os = require('os');
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
@@ -11,7 +12,7 @@ class Comparator {
 		
 		this.projectName = path.basename(this.config.sourceFolder);
 
-		this.rootTracePath = path.join(this.config.generateFolder, "trace");
+		this.rootTracePath = path.join(os.homedir(), this.config.generateFolder, "trace");
 		this.logPath = path.join(this.rootTracePath, "log");
 		this.logFilePath = path.join(this.logPath, "Bugfox.log");
 		this.logger = new Logger(this.logFilePath);

@@ -1,5 +1,6 @@
 "use strict";
 const { exec } = require('child_process');
+const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
@@ -10,12 +11,12 @@ class Launcher {
 	constructor(config) {
 		this.config = config;
 		this.projectName = path.basename(this.config.sourceFolder);
-		this.rootProjectPath = path.join(this.config.generateFolder, "project");
+		this.rootProjectPath = path.join(os.homedir(), this.config.generateFolder, "project");
 		this.baseProjectPath = path.join(this.rootProjectPath, this.projectName + "_base");
 		this.newProjectPath = path.join(this.rootProjectPath, this.projectName + "_new");
 		this.runProjectPath = path.join(this.rootProjectPath, this.projectName + "_run");
 
-		this.rootTracePath = path.join(this.config.generateFolder, "trace");
+		this.rootTracePath = path.join(os.homedir(), this.config.generateFolder, "trace");
 		this.logPath = path.join(this.rootTracePath, "log");
 		this.logger = new Logger(path.join(this.logPath, "Bugfox.log"));
 

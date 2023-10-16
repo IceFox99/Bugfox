@@ -1,9 +1,11 @@
 {
-	"sourceFolder": "/home/icefox99/Bugfox-example",
-	"generateFolder": "/home/icefox99/Bugfox-result",
+	"sourceFolder": "Bugfox-example",
+	"generateFolder": "Bugfox-result",
 	"baseIgnoreFolder": [
+		"node_modules"
 	],
 	"newIgnoreFolder": [
+		"node_modules"
 	],
 	"baseCommitID": "c6b49b85aa7532cf849b6bd534be6528860c45c2",
 	"newCommitID": "60027f81a696fcf6637b13a7d03693d71c83684f",
