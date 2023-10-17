@@ -1,0 +1,20 @@
+{
+	"sourceFolder": "BugJS/hessian",
+	"generateFolder": "BugJS/hessian-result/Bug-2",
+	"baseIgnoreFolder": [
+		"node_modules"
+	],
+	"newIgnoreFolder": [
+		"node_modules"
+	],
+	"baseCommitID": "99b42fca2a4c3ec89e19d35add57757e599b72a4",
+	"newCommitID": "5658473f881958e3c78d73a7c59946cb79358c8d",
+	"baseCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/map.test.js"
+	],
+	"newCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/map.test.js"
+	]
+}

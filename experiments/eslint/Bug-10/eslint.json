@@ -1,0 +1,24 @@
+{
+	"sourceFolder": "BugJS/eslint",
+	"generateFolder": "BugJS/eslint-result/Bug-10",
+	"baseIgnoreFolder": [
+		"node_modules",
+		"tests/fixtures",
+		"tests/performance"
+	],
+	"newIgnoreFolder": [
+		"node_modules",
+		"tests/fixtures",
+		"tests/performance"
+	],
+	"baseCommitID": "708c9269b8bff24d8367d0e947bc8d5b23c1c81e",
+	"newCommitID": "8dc2b64411c60f8acada3a33eaf401ac50b05427",
+	"baseCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 tests/lib/config.js"
+	],
+	"newCommand": [
+		"npm install",
+		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 tests/lib/config.js"
+	]
+}

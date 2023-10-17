@@ -56,36 +56,36 @@ class Translator {
 	}
 
 	async setUpProject() {
-		let initialLog = "\n----------Bugfox: START SETTING UP PROJECTS----------\n\n";
-		console.log("\n----------Bugfox: START SETTING UP PROJECTS----------\n");
+		let initialLog = "\n----------[Bugfox] START SETTING UP PROJECTS----------\n\n";
+		console.log("\n----------[Bugfox] START SETTING UP PROJECTS----------\n");
 
-		initialLog += ("Bugfox: clean folder " + path.join(os.homedir(), this.config.generateFolder) + "\n");
-		console.log("Bugfox: clean folder " + path.join(os.homedir(), this.config.generateFolder));
+		initialLog += ("[Bugfox] clean folder " + path.join(os.homedir(), this.config.generateFolder) + "\n");
+		console.log("[Bugfox] clean folder " + path.join(os.homedir(), this.config.generateFolder));
 		await fsp.rm(path.join(os.homedir(), this.config.generateFolder), { recursive: true, force: true });
 
-		initialLog += ("Bugfox: create folder " + path.join(os.homedir(), this.config.generateFolder) + "\n");
-		console.log("Bugfox: create folder " + path.join(os.homedir(), this.config.generateFolder));
+		initialLog += ("[Bugfox] create folder " + path.join(os.homedir(), this.config.generateFolder) + "\n");
+		console.log("[Bugfox] create folder " + path.join(os.homedir(), this.config.generateFolder));
 		await fsp.mkdir(path.join(os.homedir(), this.config.generateFolder), { recursive: true });
 
 		// copy source code
-		initialLog += ("Bugfox: create folder " + this.rootProjectPath + "\n");
-		console.log("Bugfox: create folder " + this.rootProjectPath);
+		initialLog += ("[Bugfox] create folder " + this.rootProjectPath + "\n");
+		console.log("[Bugfox] create folder " + this.rootProjectPath);
 		await fsp.mkdir(this.rootProjectPath, { recursive: true });
 
-		initialLog += ("Bugfox: create folder " + this.baseTracePath + "\n");
-		console.log("Bugfox: create folder " + this.baseTracePath);
+		initialLog += ("[Bugfox] create folder " + this.baseTracePath + "\n");
+		console.log("[Bugfox] create folder " + this.baseTracePath);
 		await fsp.mkdir(this.baseTracePath, { recursive: true });
 
-		initialLog += ("Bugfox: create folder " + this.newTracePath + "\n");
-		console.log("Bugfox: create folder " + this.newTracePath);
+		initialLog += ("[Bugfox] create folder " + this.newTracePath + "\n");
+		console.log("[Bugfox] create folder " + this.newTracePath);
 		await fsp.mkdir(this.newTracePath, { recursive: true });
 
-		initialLog += ("Bugfox: create folder " + this.traceDiffPath + "\n");
-		console.log("Bugfox: create folder " + this.traceDiffPath);
+		initialLog += ("[Bugfox] create folder " + this.traceDiffPath + "\n");
+		console.log("[Bugfox] create folder " + this.traceDiffPath);
 		await fsp.mkdir(this.traceDiffPath, { recursive: true });
 
-		initialLog += ("Bugfox: create folder " + this.logPath + "\n");
-		console.log("Bugfox: create folder " + this.logPath);
+		initialLog += ("[Bugfox] create folder " + this.logPath + "\n");
+		console.log("[Bugfox] create folder " + this.logPath);
 		fs.mkdirSync(this.logPath, { recursive: true });
 		
 		// After the initialization of directories, the logger could be used

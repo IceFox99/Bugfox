@@ -19,7 +19,5 @@
 		"npm install",
 		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/app.param.js"
 	],
-	"testEntries": [
-		"test/app.param.js#AnonFunc@a2a917cfeea7c21d313f6d859b41022c676eecc62e06ed0cd540f5a3735999d6/AnonFunc@2a6bfebc1eef19e7c9ed69e45e9048c9c64219211fe21393c66d2f937efe0a43/AnonFunc@434b76aa2d786ac46b324cbb792fd513c027871158ecbdfcbbdc10a70967a062,434b76aa2d786ac46b324cbb792fd513c027871158ecbdfcbbdc10a70967a062"
-	]
+	"testEntry": "test/app.param.js#AnonFunc@a2a917cfeea7c21d313f6d859b41022c676eecc62e06ed0cd540f5a3735999d6/AnonFunc@2a6bfebc1eef19e7c9ed69e45e9048c9c64219211fe21393c66d2f937efe0a43/AnonFunc@434b76aa2d786ac46b324cbb792fd513c027871158ecbdfcbbdc10a70967a062,434b76aa2d786ac46b324cbb792fd513c027871158ecbdfcbbdc10a70967a062"
 }

@@ -71,7 +71,7 @@ class Launcher {
 			]);
 		}
 
-		this.logger.log("copy new project to running enviroment", "\nBugfox: ");
+		this.logger.log("copy new project to running enviroment", "\n[Bugfox] ");
 		await fsp.rm(this.runProjectPath, { recursive: true, force: true });
 		await fse.copy(this.newProjectPath, this.runProjectPath);
 

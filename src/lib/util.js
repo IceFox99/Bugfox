@@ -23,14 +23,14 @@ class Logger {
 		this.filePath = filePath;
 	}
 
-	log(str, prefix = "Bugfox: ", postfix = "") {
+	log(str, prefix = "[Bugfox] ", postfix = "") {
 		let newStr = prefix + str + postfix;
 		console.log(newStr);
 		fs.appendFileSync(this.filePath, newStr + "\n");
 	}
 
 	logL(str) {
-		let newStr = "\n----------Bugfox: " + str + "----------\n";
+		let newStr = "\n----------[Bugfox] " + str + "----------\n";
 		console.log(newStr);
 		fs.appendFileSync(this.filePath, newStr + "\n");
 	}
