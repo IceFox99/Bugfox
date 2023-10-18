@@ -347,10 +347,6 @@ class Comparator {
 				if (isAfterChanged) {
 					// 111
 					this.diffs.push(diff);
-
-					// TEST
-					for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i)
-						await this.compFuncStack([...baseIndex, i], [...newIndex, i]);
 				}
 				else {
 					// 110
@@ -363,9 +359,6 @@ class Comparator {
 					// probably caused by the change of this function
 					// mark this comparison
 					this.diffs.push(diff);
-
-					for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i)
-						await this.compFuncStack([...baseIndex, i], [...newIndex, i]);
 				}
 				else {
 					// 100
@@ -381,10 +374,6 @@ class Comparator {
 					// probably caused by different input
 					// mark this comparison
 					this.diffs.push(diff);
-					
-					// TEST
-					for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i)
-						await this.compFuncStack([...baseIndex, i], [...newIndex, i]);
 				}
 				else {
 					// 010
@@ -398,10 +387,6 @@ class Comparator {
 					// probably caused by the change of callee function's update
 					// mark this comparison
 					this.diffs.push(diff);
-
-					// iterate their subtree recursively until meet different function
-					for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i)
-						await this.compFuncStack([...baseIndex, i], [...newIndex, i]);
 				}
 				else {
 					// 000
@@ -410,6 +395,8 @@ class Comparator {
 				}
 			}
 		}
+		for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i)
+			await this.compFuncStack([...baseIndex, i], [...newIndex, i]);
 	}
 
 	async compare() {

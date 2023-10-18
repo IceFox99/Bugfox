@@ -11,8 +11,8 @@ class FuncID  {
 		this.hash = hash;
 	}
 
-	isAnon() {
-		return this.funcPath[this.funcPath.length - 1].split('@')[0] === "AnonFunc";
+	static isAnon(funcPath) {
+		return funcPath.split('@')[0] === "AnonFunc";
 	}
 
 	static read(id) {
@@ -20,18 +20,21 @@ class FuncID  {
 	}
 
 	static compFuncID(id1, id2) {
-		if (FuncID.read(id1).isAnon() && FuncID.read(id2).isAnon()) {
-			return (id1.filePath === id2.filePath) && 
-				(JSON.stringify(id1.funcPath.slice(0, id1.funcPath.length - 1)) === JSON.stringify(id2.funcPath.slice(0, id2.funcPath.length - 1)));
+		const lID = FuncID.read(id1);
+		const rID = FuncID.read(id2);
+		if (lID.filePath !== rID.filePath || lID.funcPath.length !== rID.funcPath.length)
+			return 0;
+
+		for (let i = 0; i < lID.funcPath.length; ++i) {
+			if (FuncID.isAnon(lID.funcPath[i]) && FuncID.isAnon(rID.funcPath[i]))
+				continue;
+			if (lID.funcPath[i] !== rID.funcPath[i])
+				return 0;
 		}
-		return (id1.filePath === id2.filePath) && (JSON.stringify(id1.funcPath) === JSON.stringify(id2.funcPath));
+		return 1;
 	}
 
 	toStr() {
-		//let funcName = "";
-		//funcName += this.funcPath[0];
-		//for (let i = 1; i < this.funcPath.length; i++)
-		//	funcName += "/" + this.funcPath[i];
 		return this.filePath + "#" + this.funcPath.join("/") + "," + this.hash;
 	}
 }
