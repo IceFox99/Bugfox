@@ -252,45 +252,35 @@ class Comparator {
 		return ((a.length < b.length) ? 1 : -1);
 	}
 
-	getFirstDeepestIndexs(diffs) {
-		let lastDiff = null, resDiffs = [], isFinished = false;
-
+	getDeepestIndexes(diffs) {
+		let lastDiff = null, resDiffs = [], flag = true;
 		for (const diff of diffs) {
-			if (diff.baseIndex.length === 1) {
-				resDiffs.push(diff); // push the depth-1 diff as backup
+			if (!lastDiff) {
 				lastDiff = diff;
-				isFinished = false;
 				continue;
 			}
-
-			if (isFinished)
-				continue;
 
 			if (diff.baseIndex.length <= lastDiff.baseIndex.length) {
-				resDiffs.pop(); // pop the depth-1 diff
 				resDiffs.push(lastDiff);
-				isFinished = true;
 				lastDiff = diff;
 				continue;
 			}
-				
+
 			for (let i = 0; i < lastDiff.baseIndex.length; ++i) {
 				if (diff.baseIndex[i] !== lastDiff.baseIndex[i]) {
-					resDiffs.pop(); // pop the depth-1 diff
-					resDiffs.push(lastDiff);
-					isFinished = true;
-					lastDiff = diff;
+					flag = false;
 					break;
 				}
 			}
 
+			if (!flag)
+				resDiffs.push(lastDiff);
+			flag = true;
 			lastDiff = diff;
 		}
 
-		if (!isFinished) {
-			resDiffs.pop();
+		if (lastDiff !== null)
 			resDiffs.push(lastDiff);
-		}
 
 		return resDiffs;
 	}
@@ -301,7 +291,7 @@ class Comparator {
 			return;
 		}
 
-		for (const deepDiff of this.getFirstDeepestIndexs(this.diffs)) {
+		for (const deepDiff of this.getDeepestIndexes(this.diffs)) {
 			this.logger.log("[TEST " + deepDiff.baseIndex[0] + " & " + deepDiff.newIndex[0] + "] " + FuncID.read(FuncStack.getFuncStack(this.baseFuncStack, [deepDiff.baseIndex[0]]).funcID).toStr(), "");
 			this.logger.log(await this.getCompStr(deepDiff), "");
 			this.logger.log("\n", "");
