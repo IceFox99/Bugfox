@@ -19,7 +19,7 @@ Bugfox consists of three independent components: the translator, launcher, and c
 
 - Translator: translate your JS source code by traversing the its abstract syntax tree and inserting the tracer code under certain rules, so that all information of a function call will be recorded and constructed into a function stacks tree (known as **call graph**) at runtime.
 - Launcher: launch your project with the given command in your configuration file, and write the recorded information to JSON files.
-- Comparator: compare and analyze the generated call graphs of base version and bug version, find the most possible functions or changes that causes the software regression.
+- Comparator: compare and analyze the generated call graphs of correct version and buggy version, find the most possible functions or changes that causes the software regression.
 
 Besides, Bugfox is designed to be user-friendly, ***all you need is just a JSON file*** with the correct configurations. A simple example can be seen in the [Usage](#Usage) section below.
 
@@ -46,7 +46,7 @@ $ npm install
 
 ### TL;DR
 
-Write your config JSON file and put it in `Bugfox/src` folder (check this [example](src/Bugfox-config.json)), and run
+Write your config JSON file and put it in `Bugfox/src` folder (check this [example](experiments/Bugfox-example/Bugfox-config.json)), and run
 
 ```shell
 $ cd src
@@ -61,25 +61,25 @@ First, clone that simple test project and test it:
 
 ```
 $ git clone https://github.com/IceFox99/Bugfox-example.git
-$ cd Bugfox-example/src
-$ node test_math.js
+$ cd Bugfox-example && npm install
+$ mocha test/math.js
 ```
 
-After running the `test_math.js`, you can see the unexpected fails in the test result. But it passes the same test before this commit, which means that we encountered a software regression in this commit. Then, you have to remember:
+After running the `mocha test/math.js`, you can see the unexpected fails in the test result. But it passes the same test before this commit, which means that we encountered a software regression in this commit. Then, you have to remember:
 
 - path of this Bugfox-example
-- git commit IDs of the correct version (in this case, `c6b49b85aa7532cf849b6bd534be6528860c45c2`) and bug version (in this case, `60027f81a696fcf6637b13a7d03693d71c83684f`)
-- files or folders that you want to be avoided in translating phase (`node_modules`, unrelated js files, files uncompatible to the `acorn` parser, etc)
+- git commit ID/tag/reference of the correct version (in this case, `5a78ba82c24b4d2d13d4a6e71e8fa37c1366171c` or simply `HEAD~`) and buggy version (in this case, `e25c4fd2b300fa58bc5775a2b5e735c9f0eb25b8` or simply `HEAD`)
+- files or folders that you want to be avoided in translating phase (`node_modules`, unrelated js files, files which are uncompatible to the `acorn` parser, etc.)
 - commands to run the test module
 
-Below is the prewritten configuration JSON file, which can be found in [src/Bugfox-config.json](src/Bugfox-config.json). 
+Below is the prewritten configuration JSON file, which can be found in `experiments/Bugfox-example/Bugfox-config.json`. 
 Please modify the `sourceFolder` value to the path of your `Bugfox-example`, and change the `generateFolder` value to the location where all generated files, including translated source code and trace information, will be stored. 
 
 #### Path format:
 - `sourceFolder`: the location of your project (relative path to ***home directory***)
 - `generateFolder`: the root location of all generated files (relative path to ***home directory***)
-- `baseIgnoreFolder`: folders which you want to be ignored for translating in your project's base commit (relative path to ***project path***)
-- `newIgnoreFolder`: folders which you want to be ignored for translating in your project's new commit (relative path to ***project path***)
+- `baseIgnoreFolder`: folders or files which you want to be ignored when translating codes of base commit (relative path to ***project path***)
+- `newIgnoreFolder`: folders or files which you want to be ignored when translating codes of new commit (relative path to ***project path***)
 
 <u>***Be aware that this tool will clean the `generateFolder` first if it exists, so please make sure you use a nonexistent or empty folder!!***</u>
 
@@ -93,15 +93,13 @@ Please modify the `sourceFolder` value to the path of your `Bugfox-example`, and
 	"newIgnoreFolder": [
 		"node_modules"
 	],
-	"baseCommitID": "c6b49b85aa7532cf849b6bd534be6528860c45c2",
-	"newCommitID": "60027f81a696fcf6637b13a7d03693d71c83684f",
+	"baseCommitID": "HEAD~",
+	"newCommitID": "HEAD",
 	"baseCommand": [
-		"cd src",
-		"node test_math.js"
+		"mocha test/math.js"
 	],
 	"newCommand": [
-		"cd src",
-		"node test_math.js"
+		"mocha test/math.js"
 	]
 }
 ```
@@ -117,16 +115,12 @@ $ node Bugfox.js ../experiments/Bugfox-example/Bugfox-config.json
 Check the standard output and the `generateFolder` that you specify, the file structure inside that folder will looks like:
 
 ```
-BugfoxResult
+Bugfox-result
 ├── project
 │   ├── Bugfox-example_base
-│   │   └── src
-│   │       ├── math.js
-│   │       └── test_math.js
+│   │   └── ...
 │   └── Bugfox-example_new
-│       └── src
-│           ├── math.js
-│           └── test_math.js
+│       └── ...
 └── trace
     ├── Bugfox-example_base
     │   ├── Bugfox-example_base.json
@@ -143,7 +137,7 @@ BugfoxResult
 ```
 
 - `project/Bugfox-example_base`: translated source codes of the correct version.
-- `project/Bugfox-example_new`: translated source codes of the bug version.
+- `project/Bugfox-example_new`: translated source codes of the buggy version.
 - `trace/Bugfox-example_base` and `trace/Bugfox-example_new`: complete call graph and function hash values used for check if the function has been modified in this commit (both in JSON format).
 - `trace/diff`: differences between these two version and complete analysis result.
 - `trace/log`: complete log of the standard output in the shell
@@ -152,7 +146,7 @@ You will obtain analysis results like the following:
 
 ```
 ...
-[TEST 0] src/test_math.js#Func@test_average,c51496518ff0305cf877cd2033d037fd2dd4943088e268649eef61584f507f90
+[TEST 3 & 3] test/math.js#AnonFunc@776f97cfcaea6562f8e95ead852030f68b97a39817fffd389320ba2cb5829f64/AnonFunc@af38b65e9268fde3f69a401cd4277b56e1b80e778e6fee38008d6b9679b48877,af38b65e9268fde3f69a401cd4277b56e1b80e778e6fee38008d6b9679b48877
 ~~~~~~~~~~~~~~~~~~~~FUNCTION: src/math.js#Func@add,650970d8fd9b25f9a90378c26fd3aba7dd3c73b098523469291be838880cd3e5~~~~~~~~~~~~~~~~~~~~
 [CODE]
 function add(a, b) {
@@ -160,7 +154,7 @@ function add(a, b) {
 }
 
 [DETAILS]
-index: [0,2,0,0]
+index: [3,0,0,0]
 caller: src/math.js#FuncVar@sum,af0dce960751dd36473d6a4d5300193966952c7d7b3388254c19a78263bf8db1
 isCodeChanged: false
 isBeforeThisChanged: false

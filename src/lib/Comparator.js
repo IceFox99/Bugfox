@@ -291,10 +291,16 @@ class Comparator {
 			return;
 		}
 
+		// TEMPORARY SOLUTION, TO BE DETERMINED!!
+		let test = new Set();
 		for (const deepDiff of this.getDeepestIndexes(this.diffs)) {
-			this.logger.log("[TEST " + deepDiff.baseIndex[0] + " & " + deepDiff.newIndex[0] + "] " + FuncID.read(FuncStack.getFuncStack(this.baseFuncStack, [deepDiff.baseIndex[0]]).funcID).toStr(), "");
-			this.logger.log(await this.getCompStr(deepDiff), "");
-			this.logger.log("\n", "");
+			// Make sure report only one function for each test
+			if (!test.has(deepDiff.baseIndex[0])) {
+				this.logger.log("[TEST " + deepDiff.baseIndex[0] + " & " + deepDiff.newIndex[0] + "] " + FuncID.read(FuncStack.getFuncStack(this.baseFuncStack, [deepDiff.baseIndex[0]]).funcID).toStr(), "");
+				this.logger.log(await this.getCompStr(deepDiff), "");
+				this.logger.log("\n", "");
+				test.add(deepDiff.baseIndex[0]);
+			}
 		}
 	}
 
