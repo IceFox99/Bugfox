@@ -46,11 +46,11 @@ $ npm install
 
 ### TL;DR
 
-Write your config JSON file and put it in `Bugfox/src` folder (check this [example](experiments/Bugfox-example/Bugfox-config.json)), and run
+Write your config JSON file (check this [example](experiments/Bugfox-example/Bugfox-config.json)) and change to `Bugfox` folder, and run
 
 ```shell
 $ cd src
-$ node Bugfox.js your-config.json
+$ node Bugfox.js path/to/your/config.json
 ```
 
 ### Demo (recommended!!)
