@@ -62,7 +62,7 @@ First, clone that simple test project and test it:
 ```
 $ git clone https://github.com/IceFox99/Bugfox-example.git
 $ cd Bugfox-example && npm install
-$ mocha test/math.js
+$ node_modules/.bin/_mocha test/math.js
 ```
 
 After running the `mocha test/math.js`, you can see the unexpected fails in the test result. But it passes the same test before this commit, which means that we encountered a software regression in this commit. Then, you have to remember:
@@ -96,10 +96,10 @@ Please modify the `sourceFolder` value to the path of your `Bugfox-example`, and
 	"baseCommitID": "HEAD~",
 	"newCommitID": "HEAD",
 	"baseCommand": [
-		"mocha test/math.js"
+		"node_modules/.bin/_mocha test/math.js"
 	],
 	"newCommand": [
-		"mocha test/math.js"
+		"node_modules/.bin/_mocha test/math.js"
 	]
 }
 ```

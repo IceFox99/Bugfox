@@ -10,9 +10,9 @@
 	"baseCommitID": "HEAD~",
 	"newCommitID": "HEAD",
 	"baseCommand": [
-		"mocha test/math.js"
+		"node_modules/.bin/_mocha test/math.js"
 	],
 	"newCommand": [
-		"mocha test/math.js"
+		"node_modules/.bin/_mocha test/math.js"
 	]
 }
