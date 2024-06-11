@@ -7,8 +7,8 @@
 	"newIgnoreFolder": [
 		"node_modules"
 	],
-	"baseCommitID": "5eecdbd1a4e87acfe0226f165a9fa01645236c78",
-	"newCommitID": "fba89d35014ee9a3b6749eef2618cbd5433d86e6",
+	"baseCommitID": "Bug-16-base",
+	"newCommitID": "Bug-16-new",
 	"baseCommand": [
 		"npm install",
 		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/res.redirect.js"

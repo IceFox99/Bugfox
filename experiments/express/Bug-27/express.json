@@ -9,8 +9,8 @@
 		"node_modules",
 		"examples/cookie-sessions/index.js"
 	],
-	"baseCommitID": "7855408f2496b04ffb7f5d43e6ad9291259c987e",
-	"newCommitID": "6cdb9b26ac70eeffbd69fed16d09af5d11e4116f",
+	"baseCommitID": "Bug-27-base",
+	"newCommitID": "Bug-27-new",
 	"baseCommand": [
 		"npm install",
 		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/app.param.js"

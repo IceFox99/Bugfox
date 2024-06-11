@@ -11,8 +11,8 @@
 		"tests/fixtures",
 		"tests/performance"
 	],
-	"baseCommitID": "c09f568df8ecb241a7810b689e34db0ae3a43e24",
-	"newCommitID": "8296cf2c2b4532c5b265afcf25dcbe75b57caa62",
+	"baseCommitID": "Bug-307-base",
+	"newCommitID": "Bug-307-new",
 	"baseCommand": [
 		"npm install",
 		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 tests/lib/rules/no-multi-spaces.js"

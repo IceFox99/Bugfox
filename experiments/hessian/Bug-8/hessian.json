@@ -7,8 +7,8 @@
 	"newIgnoreFolder": [
 		"node_modules"
 	],
-	"baseCommitID": "da8e1da00a721d68f57b8c4fe00bbc0e167bb707",
-	"newCommitID": "4f098a0a0f7d901293ebc77196a1cfb8b1bc65c5",
+	"baseCommitID": "Bug-8-base",
+	"newCommitID": "Bug-8-new",
 	"baseCommand": [
 		"npm install",
 		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 test/v1.test.js"

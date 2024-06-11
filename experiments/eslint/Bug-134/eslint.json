@@ -11,8 +11,8 @@
 		"tests/fixtures",
 		"tests/performance"
 	],
-	"baseCommitID": "a87662d73162adc097c3b273026f6b300637f6c9",
-	"newCommitID": "4431ed800d1fa16b7de63dcfff713ac1e41807c0",
+	"baseCommitID": "Bug-134-base",
+	"newCommitID": "Bug-134-new",
 	"baseCommand": [
 		"npm install",
 		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 tests/lib/rules/no-useless-escape.js"
