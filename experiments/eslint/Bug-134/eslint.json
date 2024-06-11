@@ -12,7 +12,7 @@
 		"tests/performance"
 	],
 	"baseCommitID": "a87662d73162adc097c3b273026f6b300637f6c9",
-	"newCommitID": "a9ad753f3364f9fd62ba87dc663c34d714c026bc",
+	"newCommitID": "4431ed800d1fa16b7de63dcfff713ac1e41807c0",
 	"baseCommand": [
 		"npm install",
 		"NODE_OPTIONS=\"--max-old-space-size=64000\" ./node_modules/.bin/_mocha --timeout 99999 tests/lib/rules/no-useless-escape.js"
