@@ -13,6 +13,8 @@ describe('app.mountpath', function(){
     app.use('/blog', blog);
     app.use(fallback);
     blog.use('/admin', admin);
+    fallback.use('/admin', admin);
+    blog.use(fallback);
 
     admin.mountpath.should.equal('/admin');
     app.mountpath.should.equal('/');
