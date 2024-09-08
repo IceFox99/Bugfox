@@ -1,6 +1,6 @@
 {
-	"sourceFolder": "BugJS/express",
-	"generateFolder": "BugJS/express-result/Bug-9",
+	"sourceFolder": "BugsJS/express",
+	"generateFolder": "BugsJS/express-result/Bug-9",
 	"baseIgnoreFolder": [
 		"node_modules"
 	],

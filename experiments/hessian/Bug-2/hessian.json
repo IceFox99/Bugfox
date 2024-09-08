@@ -1,6 +1,6 @@
 {
-	"sourceFolder": "BugJS/hessian",
-	"generateFolder": "BugJS/hessian-result/Bug-2",
+	"sourceFolder": "BugsJS/hessian",
+	"generateFolder": "BugsJS/hessian-result/Bug-2",
 	"baseIgnoreFolder": [
 		"node_modules"
 	],

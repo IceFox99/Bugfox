@@ -1,6 +1,6 @@
 {
-	"sourceFolder": "BugJS/express",
-	"generateFolder": "BugJS/express-result/Bug-27",
+	"sourceFolder": "BugsJS/express",
+	"generateFolder": "BugsJS/express-result/Bug-27",
 	"baseIgnoreFolder": [
 		"node_modules",
 		"examples/cookie-sessions/index.js"

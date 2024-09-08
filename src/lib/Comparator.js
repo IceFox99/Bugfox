@@ -26,8 +26,9 @@ class Comparator {
 
 		this.traceDiffPath = path.join(this.rootTracePath, "diff");
 		this.diffFilePath = path.join(this.traceDiffPath, "diffs.json");
-		this.candFilePath = path.join(this.traceDiffPath, "candidates.json");
+		this.candFilePath = path.join(this.traceDiffPath, "alternatives.json");
 		this.fullFilePath = path.join(this.traceDiffPath, "full.log");
+		this.reportFilePath = path.join(this.rootTracePath, "report.txt");
 
 		// function body of all functions
 		this.baseFuncTable = JSON.parse(fs.readFileSync(this.baseTraceFuncPath));
@@ -42,23 +43,24 @@ class Comparator {
 		// 1) is before information changed (beforeThis, beforeArgs)
 		// 2) is after informationn changed (afterThis, afterArgs, returnVal)
 		// look like { index, isCodeChanged, isBeforeThisChanged, isBeforeArgsChanged, isAfterThisChanged, isAfterArgsChanged, isRetChanged }
-		this.diffs = []; 
-		this.candidates = [];
+		this.diffs = []; // real differences being used in analyzing
+		this.alternatives = []; // alternative candidates, won't be used
+		this.counts = {}; // counts of all functions
+		this.n = 4;
 	}
 
 	async logFull() {
 		for (let diff of this.diffs) {
-			await fsp.appendFile(this.fullFilePath, await this.getCompStr(diff));
+			await fsp.appendFile(this.fullFilePath, await this.getFDFStr(diff));
 			await fsp.appendFile(this.fullFilePath, "\n\n");
 		}
 
-		for (let cand of this.candidates) {
-			await fsp.appendFile(this.fullFilePath, await this.getCompStr(cand));
+		for (let cand of this.alternatives) {
+			await fsp.appendFile(this.fullFilePath, await this.getFDFStr(cand));
 			await fsp.appendFile(this.fullFilePath, "\n\n");
 		}
 	}
 
-	// @TBD
 	getAnalysis(diff) {
 		const isCodeChanged = diff.isCodeChanged;
 		const isBeforeChanged = diff.isBeforeThisChanged || diff.isBeforeArgsChanged;
@@ -67,42 +69,45 @@ class Comparator {
 			if (isBeforeChanged) {
 				if (isAfterChanged) {
 					// 111
-					return "Most complicated situation, probably caused by the huge refactor of this function, please check all information includes its caller, callee and arguments.\n\n" +
-						"Possible reason:\n" +
-						"0) this function has been updated incorrectly\n" +
-						"1) received unexpected parameters from its caller\n" +
-						"2) received correct parameters but behaved incorrectly\n" +
-						"3) the code is incompatible with its caller or callee\n" +
-						"\nPossible solutions:\n" +
-						"0) check the modification of this function\n" +
-						"1) check all the differences include arguments, \"this\", return value between two commits\n" +
-						"2) traverse its function body with different arguments\n" +
-						"3) refactor this function, its caller and callee to make them compatible";
+					return "Most complicated situation, probably caused by the huge refactor of this function, please check all information includes its caller, callee and arguments."; 
+						// +
+						// "Possible reason:\n" +
+						// "0) this function has been updated incorrectly\n" +
+						// "1) received unexpected parameters from its caller\n" +
+						// "2) received correct parameters but behaved incorrectly\n" +
+						// "3) the code is incompatible with its caller or callee\n" +
+						// "\nPossible solutions:\n" +
+						// "0) check the modification of this function\n" +
+						// "1) check all the differences include arguments, \"this\", return value between two commits\n" +
+						// "2) traverse its function body with different arguments\n" +
+						// "3) refactor this function, its caller and callee to make them compatible";
 				}
 				else {
 					// 110
-					return "Candidate situation, which may worked correctly or not, please check this function's modification, its caller and the different arguments that passed to this function.\n\n" +
-						"Possible reasons:\n" +
-						"0) this function has been updated incorrectly\n" +
-						"1) received unexpected parameters from its caller\n" +
-						"2) received correct parameters but should have different return value or different behaviors\n" +
-						"\nPossible solutions:\n" +
-						"0) check the modification of this function\n" +
-						"1) traverse its function body to see whether the function should have different behavior based on different arguments\n" +
-						"2) refactor this function to make it compatible with it calller";
+					return "Candidate situation, which may worked correctly or not, please check this function's modification, its caller and the different arguments that passed to this function.";
+						// +
+						// "Possible reasons:\n" +
+						// "0) this function has been updated incorrectly\n" +
+						// "1) received unexpected parameters from its caller\n" +
+						// "2) received correct parameters but should have different return value or different behaviors\n" +
+						// "\nPossible solutions:\n" +
+						// "0) check the modification of this function\n" +
+						// "1) traverse its function body to see whether the function should have different behavior based on different arguments\n" +
+						// "2) refactor this function to make it compatible with it calller";
 				}
 			}
 			else {
 				if (isAfterChanged) {
 					// 101
-					return "Probably caused by the update of this function, please check this function's modification and its callee.\n\n" +
-						"Possible reasons:\n" +
-						"0) this function has been updated incorrectly (highest probability)\n" +
-						"1) the code is incompatible with its callee\n" +
-						"\nPossible solutions:\n" + 
-						"0) check the modification of this function\n" +
-						"1) traverse its function body with the arguments\n" +
-						"2) check its callee's contents and whether the callee have been refactored";
+					return "Probably caused by the update of this function, please check this function's modification and its callee.";
+						// +
+						// "Possible reasons:\n" +
+						// "0) this function has been updated incorrectly (highest probability)\n" +
+						// "1) the code is incompatible with its callee\n" +
+						// "\nPossible solutions:\n" + 
+						// "0) check the modification of this function\n" +
+						// "1) traverse its function body with the arguments\n" +
+						// "2) check its callee's contents and whether the callee have been refactored";
 				}
 				else {
 					// 100
@@ -115,44 +120,47 @@ class Comparator {
 			if (isBeforeChanged) {
 				if (isAfterChanged) {
 					// 011
-					return "Probably caused by the different arguments, please check its CALLER \"" + 
+					return "Probably caused by the different arguments and context, please check its CALLER \"" + 
 						FuncStack.getFuncStack(this.baseFuncStack, diff.baseIndex).caller + 
-						"\" and the different arguments that passed to this function.\n\n" +
-						"Possible reasons:\n" +
-						"0) this function received unexpected arguments (highest probability)\n" +
-						"1) the code is incompatible with its caller\n" +
-						"\nPossible solutions:\n" +
-						"0) check its caller and the different arguments\n" +
-						"1) traverse its function body with received different arguments\n" +
-						"2) refactor this function to make it compatible with its caller\n" +
-						"3) check its callee's contents and whether the callee have been refactored";
+						"\" and the different arguments and context that passed to this function."
+						//+
+						//"Possible reasons:\n" +
+						//"0) this function received unexpected arguments (highest probability)\n" +
+						//"1) the code is incompatible with its caller\n" +
+						//"\nPossible solutions:\n" +
+						//"0) check its caller and the different arguments\n" +
+						//"1) traverse its function body with received different arguments\n" +
+						//"2) refactor this function to make it compatible with its caller\n" +
+						//"3) check its callee's contents and whether the callee have been refactored";
 				}
 				else {
 					// 010
 					return "Candidate situation, which may worked correctly or not, please check its CALLER \"" + 
 						FuncStack.getFuncStack(this.baseFuncStack, diff.baseIndex).caller + 
-						"\" and the different arguments that passed to this function.\n\n" +
-						"Possible reasons:\n" +
-						"0) this function received unexpected arguments\n" +
-						"1) received correct parameters but should have different return value or different behaviors\n" +
-						"2) the code is incompatible with its callee\n" +
-						"\nPossible solutions:\n" +
-						"0) check its caller and the different arguments\n" +
-						"1) traverse its function body to see whether the function should have different behavior based on different arguments\n" +
-						"2) refactor this function to make it compatible with it calller";
+						"\" and the different arguments that passed to this function.";
+						// +
+						// "Possible reasons:\n" +
+						// "0) this function received unexpected arguments\n" +
+						// "1) received correct parameters but should have different return value or different behaviors\n" +
+						// "2) the code is incompatible with its callee\n" +
+						// "\nPossible solutions:\n" +
+						// "0) check its caller and the different arguments\n" +
+						// "1) traverse its function body to see whether the function should have different behavior based on different arguments\n" +
+						// "2) refactor this function to make it compatible with it calller";
 				}
 			}
 			else {
 				if (isAfterChanged) {
 					// 001
-					return "Unknown behavior inside this function, please check its CALLEE.\n\n" + 
-						"Possible reasons:\n" +
-						"0) callee of this function have been refactored\n" +
-						"1) program being affected by global value inside this function\n" +
-						"\nPossible solutions:\n" +
-						"0) refactor this function to make it compatible with its callee\n" +
-						"1) check its callee's contents and compare the program path inside this function\n" +
-						"2) be aware of the global variable being accessed inside this function";
+					return "Unknown behavior inside this function, please check its CALLEE."; 
+						// + 
+						// "Possible reasons:\n" +
+						// "0) callee of this function have been refactored\n" +
+						// "1) program being affected by global value inside this function\n" +
+						// "\nPossible solutions:\n" +
+						// "0) refactor this function to make it compatible with its callee\n" +
+						// "1) check its callee's contents and compare the program path inside this function\n" +
+						// "2) be aware of the global variable being accessed inside this function";
 				}
 				else {
 					// 000
@@ -163,12 +171,49 @@ class Comparator {
 		}
 	}
 
-	async getCompStr(diff) {
+	async getTopnStr() {
+		let str = "";
+		let topn = [];
+		const sortFuncs = (funca, funcb) => {
+			if (funca.counts > funcb.counts) return -1;
+			else if (funca.counts < funcb.counts) return 1;
+			else {
+				for (let i = 0; i < Math.min(funca.starting.length, funcb.starting.length); ++i) {
+					if (funca.starting[i] < funcb.starting[i]) return -1;
+					else if (funca.starting[i] > funcb.starting[i]) return 1;
+				}
+				if (funca.starting.length < funcb.starting.length) return -1;
+				return 1;
+			}
+		};
+
+		// Top-n strategy
+		str += ("~".repeat(20) + "Top-n Strategy with n=" + this.n + "~".repeat(20) + "\n");
+		
+		for (const key in this.counts) {
+			if (this.counts[key].starting.length > 1)
+				topn.push(this.counts[key]);
+		}
+		topn.sort(sortFuncs);
+		
+		for (let i = 0; i < Math.min(this.n, topn.length); i++) {
+			str += ("[" + (i + 1) + "] " + topn[i].id + " (" + topn[i].counts + " times)" + "\n");
+		}
+
+		str += ("~".repeat(20) + "Top-n Strategy with n=" + this.n + "~".repeat(20));
+		return str;
+	}
+
+	async getFDFStr(diff) {
 		const baseFS = FuncStack.getFuncStack(this.baseFuncStack, diff.baseIndex);
 		const newFS = FuncStack.getFuncStack(this.newFuncStack, diff.newIndex);
 		const baseID = FuncID.read(baseFS.funcID);
 		const newID = FuncID.read(newFS.funcID);
-		let str = ("~".repeat(20) + "FUNCTION: " + baseID.toStr() + "~".repeat(20) + "\n");
+		let str = "";
+		
+		// FDF strategy
+		str += ("~".repeat(20) + "First Deepest Function Strategy (FDF)" + "~".repeat(20) + "\n");
+		str += ("FDF FUNCTION: " + baseID.toStr() + "\n\n");
 		if (!diff.isCodeChanged) {
 			str += ("[CODE]\n" + this.baseFuncTable[baseID.toStr()] + "\n");
 			str += "\n";
@@ -232,7 +277,8 @@ class Comparator {
 			str += ("DIFF:\n" + await jsonDiff(JSON.stringify(JSON.parse(baseFS.returnVal), null, 2), 
 				JSON.stringify(JSON.parse(newFS.returnVal), null, 2)));
 
-		str += ("~".repeat(20) + "FUNCTION: " + baseID.toStr() + "~".repeat(20));
+		str += ("~".repeat(20) + "First Deepest Function Strategy (FDF)" + "~".repeat(20));
+
 		return str;
 	}
 
@@ -285,23 +331,43 @@ class Comparator {
 		return resDiffs;
 	}
 
+	recordDiff(diff, isAlter = false) {
+		if (!isAlter) this.diffs.push(diff);
+		else this.alternatives.push(diff);
+		const baseFS = FuncStack.getFuncStack(this.baseFuncStack, diff.baseIndex);
+		const funcID = FuncID.read(baseFS.funcID).toStr();
+		if (this.counts.hasOwnProperty(funcID)) {
+			++this.counts[funcID].counts;
+		}
+		else {
+			this.counts[funcID] = { id: funcID, counts: 1, starting: diff.baseIndex };
+		}
+	}
+
 	async analyze() {
 		if (this.diffs.length === 0) {
 			this.logger.log("No regression found.");
 			return;
 		}
 
-		// TEMPORARY SOLUTION, TO BE DETERMINED!!
 		let test = new Set();
 		for (const deepDiff of this.getDeepestIndexes(this.diffs)) {
 			// Make sure report only one function for each test
 			if (!test.has(deepDiff.baseIndex[0])) {
-				this.logger.log("[TEST " + deepDiff.baseIndex[0] + " & " + deepDiff.newIndex[0] + "] " + FuncID.read(FuncStack.getFuncStack(this.baseFuncStack, [deepDiff.baseIndex[0]]).funcID).toStr(), "");
-				this.logger.log(await this.getCompStr(deepDiff), "");
-				this.logger.log("\n", "");
+				let title = "[TEST " + deepDiff.baseIndex[0] + " & " + deepDiff.newIndex[0] + "] " + FuncID.read(FuncStack.getFuncStack(this.baseFuncStack, [deepDiff.baseIndex[0]]).funcID).toStr();
+				let fdfStr = await this.getFDFStr(deepDiff);
+				this.logger.log(title, "");
+				this.logger.log(fdfStr, "", "\n");
+				await fsp.appendFile(this.reportFilePath, title + "\n");
+				await fsp.appendFile(this.reportFilePath, fdfStr + "\n\n");
 				test.add(deepDiff.baseIndex[0]);
 			}
+			break; // report one candidate for FDF
 		}
+
+		let topnStr = await this.getTopnStr();
+		this.logger.log(topnStr, "");
+		await fsp.appendFile(this.reportFilePath, topnStr);
 	}
 
 	async compFuncStack(baseIndex, newIndex) {
@@ -330,7 +396,7 @@ class Comparator {
 
 		// Test Entries Mode
 		if (this.config.testEntry !== undefined && baseIndex.length === 1) {
-			this.diffs.push(diff);
+			this.recordDiff(diff);
 
 			for (let i = 0; i < Math.min(baseFS.callee.length, newFS.callee.length); ++i) 
 				await this.compFuncStack([...baseIndex, i], [...newIndex, i]);
@@ -342,11 +408,11 @@ class Comparator {
 			if (isBeforeChanged) {
 				if (isAfterChanged) {
 					// 111
-					this.diffs.push(diff);
+					this.recordDiff(diff);
 				}
 				else {
 					// 110
-					this.candidates.push(diff);
+					this.recordDiff(diff, true);
 				}
 			}
 			else {
@@ -354,7 +420,7 @@ class Comparator {
 					// 101
 					// probably caused by the change of this function
 					// mark this comparison
-					this.diffs.push(diff);
+					this.recordDiff(diff);
 				}
 				else {
 					// 100
@@ -369,12 +435,12 @@ class Comparator {
 					// 011
 					// probably caused by different input
 					// mark this comparison
-					this.diffs.push(diff);
+					this.recordDiff(diff);
 				}
 				else {
 					// 010
 					// weird situation
-					this.candidates.push(diff);
+					this.recordDiff(diff, true);
 				}
 			}
 			else {
@@ -382,7 +448,7 @@ class Comparator {
 					// 001
 					// probably caused by the change of callee function's update
 					// mark this comparison
-					this.diffs.push(diff);
+					this.recordDiff(diff);
 				}
 				else {
 					// 000
@@ -396,6 +462,7 @@ class Comparator {
 	}
 
 	async compare() {
+		let start = performance.now();
 		this.logger.logL("START ANALYZING");
 
 		if (this.config.testEntry === undefined) {
@@ -452,7 +519,7 @@ class Comparator {
 		}
 		
 		await fsp.writeFile(this.diffFilePath, JSON.stringify(this.diffs, null, 2));
-		await fsp.writeFile(this.candFilePath, JSON.stringify(this.candidates, null, 2));
+		await fsp.writeFile(this.candFilePath, JSON.stringify(this.alternatives, null, 2));
 		await this.logFull();
 
 		this.logger.log("Finish comparing call graphs, start analyzing: \n");
@@ -461,8 +528,15 @@ class Comparator {
 
 		this.logger.logL("END ANALYZING");
 
-		this.logger.log("Complete log can be seen in \"" + this.logFilePath + "\"", "");
-		this.logger.log("Analysis for all functions that behaved differently can be seen in \"" + this.fullFilePath + "\"", "");
+		let end = performance.now();
+		this.logger.log("Analyzing: " +  (end - start) + " ms");
+
+		this.logger.log("\nComplete log can be seen in \{" + this.logFilePath + "\}", "");
+		this.logger.log("Analysis for all functions that behaved differently can be seen in \{" + this.fullFilePath + "\}", "");
+		this.logger.log("\n|--------------------------------", "");
+		this.logger.log("| Concise analysis report from Bugfox can be seen in", "");
+		this.logger.log("| " + this.reportFilePath, "");
+		this.logger.log("|--------------------------------", "");
 	}
 }
 module.exports.Comparator = Comparator;

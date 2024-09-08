@@ -589,6 +589,7 @@ class Translator {
 	async transProject() {
 		await this.setUpProject();
 
+		let start = performance.now();
 		this.logger.logL("START TRANSLATING PROJECTS");
 
 		// translate base project recursively
@@ -604,6 +605,8 @@ class Translator {
 		await fsp.writeFile(this.baseTraceFuncPath, JSON.stringify(this.baseFuncTable, null, 2));
 		await fsp.writeFile(this.newTraceFuncPath, JSON.stringify(this.newFuncTable, null, 2));
 		this.logger.logL("END TRANSLATING PROJECTS");
+		let end = performance.now();
+		this.logger.log("Code Transformation: " +  (end - start) + " ms");
 	}
 }
 module.exports.Translator = Translator;

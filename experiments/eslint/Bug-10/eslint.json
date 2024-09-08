@@ -1,6 +1,6 @@
 {
-	"sourceFolder": "BugJS/eslint",
-	"generateFolder": "BugJS/eslint-result/Bug-10",
+	"sourceFolder": "BugsJS/eslint",
+	"generateFolder": "BugsJS/eslint-result/Bug-10",
 	"baseIgnoreFolder": [
 		"node_modules",
 		"tests/fixtures",
