@@ -1,2 +1,2 @@
 #!/usr/bin/bash
-node ../../../src/Bugfox.js ../experiments/eslint/Bug-307/eslint.json
+node ~/Bugfox/src/Bugfox.js ../experiments/eslint/Bug-307/eslint.json
